@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         //routeParams.setReturnDirections(true);
 
         // get the stops from the first FeatureCollectionTable
-        FeatureCollection deliveryRoutes = getDeliveryRoutes();
+        FeatureCollection deliveryRoutes = FeatureLoader.loadFeature("routes.json", getAssets());
         for (Feature feature : deliveryRoutes.getTables().get(0)) {
           routeParams.getStops().add(new Stop((Point) feature.getGeometry()));
         }
@@ -161,9 +161,5 @@ public class MainActivity extends AppCompatActivity {
     }
 
     return super.onOptionsItemSelected(item);
-  }
-
-  public FeatureCollection getDeliveryRoutes() {
-    return null;
   }
 }
