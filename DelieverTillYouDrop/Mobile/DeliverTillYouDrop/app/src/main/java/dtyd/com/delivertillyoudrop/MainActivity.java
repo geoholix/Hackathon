@@ -1,8 +1,9 @@
 package dtyd.com.delivertillyoudrop;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.NavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -34,8 +35,24 @@ public class MainActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
+        // TODO: Mark as delivered
+      }
+    });
+
+    NavigationView navigationView = (NavigationView) findViewById(R.id.right_drawer);
+
+    navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+      @Override
+      public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        boolean retVal = true;
+        switch(item.getItemId()){
+          case R.id.action_menu_barrier:
+            break;
+          default:
+            retVal = false;
+            break;
+        }
+        return retVal;
       }
     });
 
