@@ -1,5 +1,6 @@
 package dtyd.com.delivertillyoudrop;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -11,18 +12,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureCollection;
-import com.esri.arcgisruntime.data.FeatureCollectionTable;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
@@ -30,12 +32,15 @@ import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.Symbol;
+import com.esri.arcgisruntime.tasks.networkanalysis.PointBarrier;
 import com.esri.arcgisruntime.tasks.networkanalysis.Route;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteParameters;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteResult;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteTask;
 import com.esri.arcgisruntime.tasks.networkanalysis.Stop;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
@@ -51,9 +56,11 @@ public class MainActivity extends AppCompatActivity {
 
   private ArcGISMap mMap;
 
-  private RouteTask mRouteTask;
+  private final RouteTask mRouteTask = new RouteTask("http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route");;
 
-  private GraphicsOverlay mGraphicsOverlay;
+  private final GraphicsOverlay mGraphicsOverlay = new GraphicsOverlay();;
+
+  private final List<PointBarrier> mBarriers = new ArrayList<>();
 
   RouteParameters mRouteParams = null;
 
@@ -105,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     mMapView = (MapView) findViewById(R.id.map_view);
-    mGraphicsOverlay = new GraphicsOverlay();
+    mMapView.setOnTouchListener(new MapViewOnTouchListener(this, mMapView, mBarriers));
     mMapView.getGraphicsOverlays().add(mGraphicsOverlay);
 
     mMap = new ArcGISMap(Basemap.createNavigationVector());
@@ -121,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupDeliveryRoute() {
 
-    mRouteTask = new RouteTask("http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route");
     final ListenableFuture<RouteParameters> routeParamsFuture = mRouteTask.createDefaultParametersAsync();
     routeParamsFuture.addDoneListener(new Runnable() {
       @Override public void run() {
@@ -212,4 +218,22 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
+  /**
+   * Custom MapViewOnTouchListener that listens to long press events on the map. If one occurs a new PointBarrier is created.
+   */
+  private class MapViewOnTouchListener extends DefaultMapViewOnTouchListener {
+
+    public MapViewOnTouchListener(Context context,
+        MapView mapView, List<PointBarrier> barriers) {
+      super(context, mapView);
+    }
+
+    @Override public void onLongPress(MotionEvent e) {
+
+      Point mapPoint = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(), (int)e.getY()));
+      if (mapPoint != null) {
+        mBarriers.add(new PointBarrier(mapPoint));
+      }
+    }
+  }
 }
