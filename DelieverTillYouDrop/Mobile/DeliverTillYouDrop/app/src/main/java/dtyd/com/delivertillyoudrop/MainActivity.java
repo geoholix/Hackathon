@@ -1,31 +1,40 @@
 package dtyd.com.delivertillyoudrop;
 
+import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureCollection;
-import com.esri.arcgisruntime.data.FeatureCollectionTable;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.Viewpoint;
+import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.Symbol;
+import com.esri.arcgisruntime.tasks.networkanalysis.PointBarrier;
 import com.esri.arcgisruntime.tasks.networkanalysis.Route;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteParameters;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteResult;
@@ -36,23 +45,29 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
-  private final static String MSG_FAILED_ROUTE = "Failed to initialize delivery route";
+  private final static String MSG_FAILED_ROUTE = "Failed to recalculate delivery route";
 
-  private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 5);
+  private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(200,0,209,92), 5);
+
+  private Symbol DELIVER_SYMBOL;
+          //new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,1,77,100), 15);
 
   private MapView mMapView;
 
   private ArcGISMap mMap;
 
-  private RouteTask mRouteTask;
+  private final RouteTask mRouteTask = new RouteTask("http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route");;
 
-  private GraphicsOverlay mGraphicsOverlay;
+  private final GraphicsOverlay mGraphicsOverlay = new GraphicsOverlay();;
 
   RouteParameters mRouteParams = null;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    final BitmapDrawable b = (BitmapDrawable)ContextCompat.getDrawable(this, R.drawable.ic_stop);
+    DELIVER_SYMBOL = new PictureMarkerSymbol(b);
 
     setContentView(R.layout.activity_main);
 
@@ -95,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     mMapView = (MapView) findViewById(R.id.map_view);
-    mGraphicsOverlay = new GraphicsOverlay();
+    mMapView.setOnTouchListener(new MapViewOnTouchListener(this, mMapView));
     mMapView.getGraphicsOverlays().add(mGraphicsOverlay);
 
     mMap = new ArcGISMap(Basemap.createNavigationVector());
@@ -111,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupDeliveryRoute() {
 
-    mRouteTask = new RouteTask("http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route");
     final ListenableFuture<RouteParameters> routeParamsFuture = mRouteTask.createDefaultParametersAsync();
     routeParamsFuture.addDoneListener(new Runnable() {
       @Override public void run() {
@@ -170,8 +184,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
+        Graphic routeSteerPoint = new Graphic(route.getRouteGeometry(), DELIVER_SYMBOL);
         mGraphicsOverlay.getGraphics().clear();
         mGraphicsOverlay.getGraphics().add(routeGraphic);
+        mGraphicsOverlay.getGraphics().add(routeSteerPoint);
 
         mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
       }
@@ -200,4 +216,29 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
+  /**
+   * Custom MapViewOnTouchListener that listens to long press events on the map. If one occurs a new PointBarrier is created.
+   */
+  private class MapViewOnTouchListener extends DefaultMapViewOnTouchListener {
+
+    public MapViewOnTouchListener(Context context, MapView mapView) {
+      super(context, mapView);
+    }
+
+    @Override public void onLongPress(MotionEvent e) {
+
+      Point mapPoint = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(), (int)e.getY()));
+      if (mapPoint != null) {
+
+        Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for 100 milliseconds
+        v.vibrate(100);
+
+        mRouteParams.getPointBarriers().add(new PointBarrier(mapPoint));
+
+        // once we have added a new barrier we need to recalculate the route
+        router();
+      }
+    }
+  }
 }
