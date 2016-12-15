@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -49,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
   private GraphicsOverlay mGraphicsOverlay;
 
-  private DrawerLayout mDrawerLayout;
+  RouteParameters mRouteParams = null;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -64,11 +63,19 @@ public class MainActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        // TODO: Mark as delivered
+        // Mark as delivered
+        if (mRouteParams.getStops().size() > 2)
+        {
+          mMapView = (MapView) findViewById(R.id.map_view);
+          mRouteParams.getStops().remove(0);
+          router();
+        }else if (mRouteParams.getStops().size() > 0)
+        {
+          mRouteParams.getStops().clear();
+          mGraphicsOverlay.getGraphics().clear();
+        }
       }
     });
-
-    mDrawerLayout = (DrawerLayout) findViewById(R.id.content_main);
 
     NavigationView navigationView = (NavigationView) findViewById(R.id.right_drawer);
 
@@ -83,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
             retVal = false;
             break;
         }
-        mDrawerLayout.closeDrawers();
         return retVal;
       }
     });
@@ -109,16 +115,16 @@ public class MainActivity extends AppCompatActivity {
     final ListenableFuture<RouteParameters> routeParamsFuture = mRouteTask.createDefaultParametersAsync();
     routeParamsFuture.addDoneListener(new Runnable() {
       @Override public void run() {
-        RouteParameters routeParams = null;
+
         try {
-          routeParams = routeParamsFuture.get();
+          mRouteParams = routeParamsFuture.get();
         } catch (InterruptedException e) {
           e.printStackTrace();
         } catch (ExecutionException e) {
           e.printStackTrace();
         }
 
-        if (routeParams == null) {
+        if (mRouteParams == null) {
           Toast.makeText(MainActivity.this, MSG_FAILED_ROUTE, Toast.LENGTH_SHORT).show();
           return;
         }
@@ -128,40 +134,46 @@ public class MainActivity extends AppCompatActivity {
         // get the stops from the first FeatureCollectionTable
         FeatureCollection deliveryRoutes = FeatureLoader.loadFeature("routes.json", getAssets());
         for (Feature feature : deliveryRoutes.getTables().get(0)) {
-          routeParams.getStops().add(new Stop((Point) feature.getGeometry()));
+          mRouteParams.getStops().add(new Stop((Point) feature.getGeometry()));
         }
 
-        final ListenableFuture<RouteResult> routeResultFuture = mRouteTask.solveRouteAsync(routeParams);
-        routeResultFuture.addDoneListener(new Runnable() {
-          @Override public void run() {
+        router();
+      }
+    });
+  }
 
-            RouteResult routeResult = null;
-            try {
-              routeResult = routeResultFuture.get();
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            } catch (ExecutionException e) {
-              e.printStackTrace();
-            }
+  private void router() {
+    final ListenableFuture<RouteResult> routeResultFuture = mRouteTask.solveRouteAsync(mRouteParams);
 
-            if (routeResult == null || routeResult.getRoutes().size() == 0) {
-              Toast.makeText(MainActivity.this, MSG_FAILED_ROUTE, Toast.LENGTH_SHORT).show();
-              return;
-            }
+    routeResultFuture.addDoneListener(new Runnable() {
+      @Override public void run() {
 
-            Route route = routeResult.getRoutes().get(0);
+        RouteResult routeResult = null;
+        try {
+          routeResult = routeResultFuture.get();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } catch (ExecutionException e) {
+          e.printStackTrace();
+        }
 
-            if (route == null) {
-              Toast.makeText(MainActivity.this, MSG_FAILED_ROUTE, Toast.LENGTH_SHORT).show();
-              return;
-            }
+        if (routeResult == null || routeResult.getRoutes().size() == 0) {
+          Toast.makeText(MainActivity.this, MSG_FAILED_ROUTE, Toast.LENGTH_SHORT).show();
+          return;
+        }
 
-            Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
-            mGraphicsOverlay.getGraphics().add(routeGraphic);
+        Route route = routeResult.getRoutes().get(0);
 
-            mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
-          }
-        });
+        if (route == null) {
+          Toast.makeText(MainActivity.this, MSG_FAILED_ROUTE, Toast.LENGTH_SHORT).show();
+          return;
+        }
+
+        Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
+        mGraphicsOverlay.getGraphics().clear();
+        mGraphicsOverlay.getGraphics().add(routeGraphic);
+
+        mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
       }
     });
   }
@@ -187,4 +199,5 @@ public class MainActivity extends AppCompatActivity {
 
     return super.onOptionsItemSelected(item);
   }
+
 }
