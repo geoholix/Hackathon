@@ -1,10 +1,12 @@
 package dtyd.com.delivertillyoudrop;
 
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -24,7 +26,9 @@ import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.Symbol;
 import com.esri.arcgisruntime.tasks.networkanalysis.Route;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteParameters;
@@ -38,7 +42,10 @@ public class MainActivity extends AppCompatActivity {
 
   private final static String MSG_FAILED_ROUTE = "Failed to initialize delivery route";
 
-  private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 5);
+  private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(200,0,209,92), 5);
+
+  private Symbol DELIVER_SYMBOL;
+          //new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,1,77,100), 15);
 
   private MapView mMapView;
 
@@ -53,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    final BitmapDrawable b = (BitmapDrawable)ContextCompat.getDrawable(this, R.drawable.ic_stop);
+    DELIVER_SYMBOL = new PictureMarkerSymbol(b);
 
     setContentView(R.layout.activity_main);
 
@@ -170,8 +180,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
+        Graphic routeSteerPoint = new Graphic(route.getRouteGeometry(), DELIVER_SYMBOL);
         mGraphicsOverlay.getGraphics().clear();
         mGraphicsOverlay.getGraphics().add(routeGraphic);
+        mGraphicsOverlay.getGraphics().add(routeSteerPoint);
 
         mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
       }
