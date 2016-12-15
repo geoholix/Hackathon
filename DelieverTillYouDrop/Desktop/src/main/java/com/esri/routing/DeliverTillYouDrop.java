@@ -30,6 +30,10 @@
  */
 package com.esri.routing;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,22 +41,23 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import com.esri.arcgisruntime.data.FeatureCollection;
+import com.esri.arcgisruntime.data.FeatureCollectionTable;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.layers.FeatureCollectionLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.DrawStatus;
@@ -71,9 +76,15 @@ import com.esri.arcgisruntime.tasks.networkanalysis.RouteResult;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteTask;
 import com.esri.arcgisruntime.tasks.networkanalysis.Stop;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+
 public class DeliverTillYouDrop extends Application {
 
   private MapView mapView;
+
+  private ArcGISMap map;
 
   private RouteTask routeTask;
 
@@ -83,19 +94,23 @@ public class DeliverTillYouDrop extends Application {
 
   private Graphic routeGraphic;
 
-  private List<Point> route1;
+  //  private List<Point> route1;
+  //
+  //  private List<Point> route2;
+  //
+  //  private List<Point> route3;
+  //
+  //  private List<Point> route4;
 
-  private List<Point> route2;
-
-  private List<Point> route3;
-
-  private List<Point> route4;
+  List<List<Point>> routes = new ArrayList<>();
 
   private GraphicsOverlay routeGraphicsOverlay = new GraphicsOverlay();
 
   private final SpatialReference ESPG_3857 = SpatialReference.create(102100);
 
   private static final int WHITE_COLOR = 0xffffffff;
+
+  private static final int BLACK_COLOR = 0xff000000;
 
   private static final int BLUE_COLOR = 0xFF0000FF;
 
@@ -145,15 +160,15 @@ public class DeliverTillYouDrop extends Application {
         // System.out.println("ComboBox Action (selected: " + selectedRoute + ")");
         try {
           if (selectedRoute.equals("Route 1"))
-            addRoute(route1, GREEN_COLOR);
+            addRoute(routes.get(0), GREEN_COLOR);
           if (selectedRoute.equals("Route 2"))
-            addRoute(route2, YELLOW_COLOR);
+            addRoute(routes.get(1), YELLOW_COLOR);
           if (selectedRoute.equals("Route 3"))
-            addRoute(route3, BLUE_COLOR);
+            addRoute(routes.get(2), BLUE_COLOR);
           if (selectedRoute.equals("All Routes")) {
-            addRoute(route1, GREEN_COLOR);
-            addRoute(route2, YELLOW_COLOR);
-            addRoute(route3, BLUE_COLOR);
+            addRoute(routes.get(0), GREEN_COLOR);
+            addRoute(routes.get(1), YELLOW_COLOR);
+            addRoute(routes.get(2), BLUE_COLOR);
           }
         } catch (Exception e1) {
           // TODO Auto-generated catch block
@@ -202,7 +217,7 @@ public class DeliverTillYouDrop extends Application {
       // resetButton
       // add buttons and direction list and label to the control panel
       hboxControl.getChildren().addAll(selectRouteControl, routeControl, barrierControl, findRoutesControl);
-      ArcGISMap map = new ArcGISMap(Basemap.createStreets());
+      map = new ArcGISMap(Basemap.createStreets());
       mapView = new MapView();
       mapView.setMap(map);
       mapView.addDrawStatusChangedListener(e -> {
@@ -217,18 +232,17 @@ public class DeliverTillYouDrop extends Application {
         routeTask.loadAsync();
         routeTask.addDoneLoadingListener(() -> {
           try {
-            mapView.setOnMouseClicked(e -> {
-              if (e.getButton() == MouseButton.PRIMARY) {
-                Point2D point = new Point2D(e.getX(), e.getY());
-                Point mapPoint = mapView.screenToLocation(point);
-                System.out.println("X: " + mapPoint.getX() + " Y: " + mapPoint.getY());
-              }
-            });
             routeParameters = routeTask.createDefaultParametersAsync().get();
             routeParameters.setOutputSpatialReference(ESPG_3857);
             routeParameters.setReturnStops(true);
             routeParameters.setReturnDirections(true);
-            createRoutes();
+
+            JsonObject validFCJSON = getTestAssetJson(getClass().getResource("/deliveries.txt").getPath());
+            FeatureCollection featureCollection = FeatureCollection.fromJson(validFCJSON.toString());
+            FeatureCollectionLayer layer = new FeatureCollectionLayer(featureCollection);
+            map.getOperationalLayers().add(layer);
+            createRoutes(featureCollection.getTables());
+
           } catch (Exception ex) {
             ex.printStackTrace();
           }
@@ -244,57 +258,95 @@ public class DeliverTillYouDrop extends Application {
     }
   }
 
-  private void createRoutes() {
-    route1 = new ArrayList<>();
-    route1.add(new Point(-1.304321859640959E7, 3857650.556262654, ESPG_3857));
-    route1.add(new Point(-1.3043212577507617E7, 3857742.8460929478, ESPG_3857));
-    route1.add(new Point(-1.3043113377983175E7, 3857815.451480437, ESPG_3857));
-    route1.add(new Point(-1.3043013444223E7, 3857867.451071079, ESPG_3857));
-    route2 = new ArrayList<>();
-    route2.add(new Point(-1.3043203549154652E7, 3857485.036458323, ESPG_3857));
-    route2.add(new Point(-1.3043211574357286E7, 3857408.7970332974, ESPG_3857));
-    route2.add(new Point(-1.30431915113507E7, 3857214.1858694176, ESPG_3857));
-    route2.add(new Point(-1.3043019972644394E7, 3857176.0661569047, ESPG_3857));
-    route3 = new ArrayList<>();
-    route3.add(new Point(-1.3042825361480514E7, 3857668.6129685817, ESPG_3857));
-    route3.add(new Point(-1.3042791254369318E7, 3857768.9280015095, ESPG_3857));
-    route3.add(new Point(-1.3042709999192646E7, 3857857.205230486, ESPG_3857));
-    route3.add(new Point(-1.3042793260669976E7, 3857911.3753482676, ESPG_3857));
-    route3.add(new Point(-1.3042824358330185E7, 3858018.7124335007, ESPG_3857));
-    route4 = new ArrayList<>();
-    route4.add(new Point(-1.3043095208919091E7, 3858187.2416888196, ESPG_3857));
-    route4.add(new Point(-1.3043014956892747E7, 3858295.581924382, ESPG_3857));
-    route4.add(new Point(-1.304291564501015E7, 3858290.5661727358, ESPG_3857));
-    route4.add(new Point(-1.3042880534748625E7, 3858180.219636515, ESPG_3857));
-    route4.add(new Point(-1.3042756144107793E7, 3858187.2416888196, ESPG_3857));
+  private void createRoutes(List<FeatureCollectionTable> featureTables) throws Exception {
+
+    int[] colors = new int[] {
+        0xFFFF0000, 0xFF00FF00, 0xFF0000FF,
+        0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,
+        0xFFFFA500, 0xFF8A2BE2, 0xFF00FFFF,
+        0xFFFF1493
+    };
+
+    routes = new ArrayList<>();
+    for (int i = 0; i < featureTables.size(); i++) {
+      List<Point> points = new ArrayList<>();
+      //              points.add(new Point(-1.3041955459030736E7, 3857073.8022902417, ESPG_3857));
+      featureTables.get(i).forEach(feature -> {
+        points.add((Point) feature.getGeometry());
+      });
+      try {
+        routes.add(points);
+        addRoute(points, colors[i]);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
+    }
   }
 
   private void addRoute(List<Point> points, int color) throws Exception {
     List<Stop> routeStops = routeParameters.getStops();
-    routeStops.clear();
-    routeStops.add(new Stop(points.get(0)));
-    routeStops.add(new Stop(points.get(1)));
-    routeStops.add(new Stop(points.get(2)));
-    routeStops.add(new Stop(points.get(3)));
     SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, color, 14);
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(0), stopMarker));
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(1), stopMarker));
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(2), stopMarker));
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(3), stopMarker));
-    TextSymbol stop1Text = new TextSymbol(10, "1", WHITE_COLOR, HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
-    TextSymbol stop2Text = new TextSymbol(10, "2", WHITE_COLOR, HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
-    TextSymbol stop3Text = new TextSymbol(10, "3", WHITE_COLOR, HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
-    TextSymbol stop4Text = new TextSymbol(10, "4", WHITE_COLOR, HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(0), stop1Text));
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(1), stop2Text));
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(2), stop3Text));
-    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(3), stop4Text));
-    RouteResult result = routeTask.solveRouteAsync(routeParameters).get();
-    List<Route> routes = result.getRoutes();
-    Route route = routes.get(0);
-    Geometry shape = route.getRouteGeometry();
-    routeGraphic = new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, color, 2));
-    routeGraphicsOverlay.getGraphics().add(routeGraphic);
+    TextSymbol stop1Text = new TextSymbol(10, "1", BLACK_COLOR, HorizontalAlignment.CENTER,
+        VerticalAlignment.MIDDLE);
+
+    routeStops.clear();
+    points.forEach(point -> {
+      routeStops.add(new Stop(point));
+      routeGraphicsOverlay.getGraphics().add(new Graphic(point, stopMarker));
+      routeGraphicsOverlay.getGraphics().add(new Graphic(point, stop1Text));
+    });
+
+    if (routeStops.size() > 0) {
+      RouteResult result = routeTask.solveRouteAsync(routeParameters).get();
+      List<Route> routes = result.getRoutes();
+
+      Route route = routes.get(0);
+      Geometry shape = route.getRouteGeometry();
+      routeGraphic = new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, color, 2));
+      routeGraphicsOverlay.getGraphics().add(routeGraphic);
+    }
+  }
+
+  private JsonObject getTestAssetJson(String jsonFilePath) throws IOException {
+
+    ByteArrayOutputStream byteArrayOutputStream = getByteArrayOutputStream(jsonFilePath);
+    if (byteArrayOutputStream == null)
+      return null;
+
+    JsonObject servicesJson = null;
+    try {
+      JsonParser parser = new JsonParser();
+      servicesJson = (JsonObject) parser.parse(byteArrayOutputStream.toString());
+    } catch (JsonParseException e) {
+      e.printStackTrace();
+      return null;
+    }
+    return servicesJson;
+  }
+
+  private ByteArrayOutputStream getByteArrayOutputStream(String filePath) throws IOException {
+    InputStream is = null;
+    ByteArrayOutputStream byteArrayOutputStream;
+    try {
+      // Any exceptions reading file should be propogated up the stack, as they will prevent test running correctly.
+      is = new FileInputStream(filePath);
+      byteArrayOutputStream = new ByteArrayOutputStream();
+      int ctr;
+      ctr = is.read();
+      while (ctr != -1) {
+        byteArrayOutputStream.write(ctr);
+        ctr = is.read();
+      }
+    } finally {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return byteArrayOutputStream;
   }
 
   /**
