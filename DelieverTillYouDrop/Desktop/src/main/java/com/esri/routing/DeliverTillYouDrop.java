@@ -34,14 +34,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -97,28 +101,70 @@ public class DeliverTillYouDrop extends Application {
       stage.setScene(scene);
       stage.show();
 
-      VBox vBoxControl = new VBox(6);
-      vBoxControl.setMaxSize(200, 300);
-      vBoxControl.getStyleClass().add("panel-region");
-
-      Label directionsLabel = new Label("Route directions:");
-      directionsLabel.getStyleClass().add("panel-label");
-
+      // create a control panel
+      HBox hboxControl = new HBox(6);
+      hboxControl.setMaxSize(500, 30);
+      hboxControl.getStyleClass().add("panel-region");
+      VBox selectRouteControl = new VBox(6);
+      selectRouteControl.setMaxSize(200, 30);
+      selectRouteControl.getStyleClass().add("panel-region");
+      Label routesLabel = new Label("Select the Routes to show:");
+      routesLabel.getStyleClass().add("panel-label");
+      // create list of routes
+      ObservableList<String> routesList = FXCollections.observableArrayList();
+      routesList.add("All Routes");
+      routesList.add("Route 1");
+      routesList.add("Route 2");
+      routesList.add("Route 3");
+      routesList.add("Route 4");
+      routesList.add("Route 5");
+      // create combo box
+      ComboBox<String> comboBox = new ComboBox<>(routesList);
+      comboBox.setMaxWidth(Double.MAX_VALUE);
+      comboBox.setDisable(false);
+      selectRouteControl.getChildren().addAll(routesLabel, comboBox);
+      // create buttons for user interaction
+      Label routeButtons = new Label("Routes interaction:");
+      routeButtons.getStyleClass().add("panel-label");
+      Button addRouteButton = new Button("Add route");
+      addRouteButton.setMaxWidth(Double.MAX_VALUE);
+      addRouteButton.setDisable(false);
+      Button deleteRouteButton = new Button("Delete route");
+      deleteRouteButton.setMaxWidth(Double.MAX_VALUE);
+      deleteRouteButton.setDisable(false);
+      VBox routeControl = new VBox(6);
+      routeControl.setMaxSize(150, 30);
+      routeControl.getStyleClass().add("panel-region");
+      routeControl.getChildren().addAll(routeButtons, addRouteButton, deleteRouteButton);
+      Label barriers = new Label("Barriers interaction:");
+      barriers.getStyleClass().add("panel-label");
+      Button addBarrierButton = new Button("Add Barrier");
+      addBarrierButton.setMaxWidth(Double.MAX_VALUE);
+      addBarrierButton.setDisable(false);
+      Button deleteBarrierButton = new Button("Delete Barrier");
+      deleteBarrierButton.setMaxWidth(Double.MAX_VALUE);
+      deleteBarrierButton.setDisable(false);
+      VBox barrierControl = new VBox(6);
+      barrierControl.setMaxSize(150, 30);
+      barrierControl.getStyleClass().add("panel-region");
+      barrierControl.getChildren().addAll(barriers, addBarrierButton, deleteBarrierButton);
+      Label find = new Label("Find/Clear routes:");
+      find.getStyleClass().add("panel-label");
       Button findButton = new Button("Find route");
       findButton.setMaxWidth(Double.MAX_VALUE);
       findButton.setDisable(true);
       Button resetButton = new Button("Reset");
       resetButton.setMaxWidth(Double.MAX_VALUE);
       resetButton.setDisable(true);
+      VBox findRoutesControl = new VBox(6);
+      findRoutesControl.setMaxSize(150, 30);
+      findRoutesControl.getStyleClass().add("panel-region");
+      findRoutesControl.getChildren().addAll(find, findButton, resetButton);
 
-      resetButton.setOnAction(e -> {
-        routeGraphicsOverlay.getGraphics().remove(routeGraphic);
-        directionsList.getItems().clear();
-        resetButton.setDisable(true);
-        findButton.setDisable(false);
-      });
-
-      vBoxControl.getChildren().addAll(directionsLabel, directionsList, findButton, resetButton);
+      // TODO: clear the routes from the map
+      // resetButton
+      // add buttons and direction list and label to the control panel
+      hboxControl.getChildren().addAll(selectRouteControl, routeControl, barrierControl, findRoutesControl);
 
       ArcGISMap map = new ArcGISMap(Basemap.createStreets());
 
@@ -201,9 +247,9 @@ public class DeliverTillYouDrop extends Application {
         e.printStackTrace();
       }
 
-      stackPane.getChildren().addAll(mapView, vBoxControl);
-      StackPane.setAlignment(vBoxControl, Pos.TOP_LEFT);
-      StackPane.setMargin(vBoxControl, new Insets(10, 0, 0, 10));
+      stackPane.getChildren().addAll(mapView, hboxControl);
+      StackPane.setAlignment(hboxControl, Pos.TOP_LEFT);
+      StackPane.setMargin(hboxControl, new Insets(10, 0, 0, 10));
 
     } catch (Exception e) {
       e.printStackTrace();
