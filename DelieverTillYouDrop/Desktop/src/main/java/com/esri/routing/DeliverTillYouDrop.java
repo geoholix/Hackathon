@@ -70,7 +70,7 @@ import com.esri.arcgisruntime.tasks.networkanalysis.RouteResult;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteTask;
 import com.esri.arcgisruntime.tasks.networkanalysis.Stop;
 
-public class DelieverTillYouDrop extends Application {
+public class DeliverTillYouDrop extends Application {
 
   private MapView mapView;
 
