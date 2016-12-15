@@ -1,5 +1,18 @@
 package com.esri.routing;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.Point2D;
+import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+
 import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureCollection;
 import com.esri.arcgisruntime.data.FeatureCollectionTable;
@@ -15,20 +28,9 @@ import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleRenderer;
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.geometry.Point2D;
-import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
-
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class CreateDeliveries extends Application {
+
   private GraphicsOverlay mGraphicsOverlay = new GraphicsOverlay();
   private MapView mMapView;
   private GraphicsOverlay mGraphics = new GraphicsOverlay();
@@ -59,7 +61,8 @@ public class CreateDeliveries extends Application {
       mMapView.setMap(map);
       mMapView.getGraphicsOverlays().add(mGraphicsOverlay);
 
-      mMapView.setViewpointGeometryAsync(new Envelope(-13067866, 3843014, -13004499, 3871296, SpatialReferences.getWebMercator()));
+      mMapView.setViewpointGeometryAsync(
+          new Envelope(-13067866, 3843014, -13004499, 3871296, SpatialReferences.getWebMercator()));
 
       // create a table to use for the test
       final ArrayList<Field> fields = new ArrayList<Field>();
@@ -123,5 +126,14 @@ public class CreateDeliveries extends Application {
     super.stop();
     mMapView.dispose();
   }
-}
 
+  /**
+   * Opens and runs application.
+   *
+   * @param args arguments passed to this application
+   */
+  public static void main(String[] args) {
+
+    Application.launch(args);
+  }
+}
