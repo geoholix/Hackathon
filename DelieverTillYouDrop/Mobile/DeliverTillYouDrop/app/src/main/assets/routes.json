@@ -1,0 +1,409 @@
+{
+  "layers": [
+    {
+      "featureSet": {
+        "features": [
+          {
+            "attributes": {
+              "Name": "delivery0",
+              "ObjectID": 1
+            },
+            "geometry": {
+              "x": -13042573.937800001,
+              "y": 3857372.3410999998,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery1",
+              "ObjectID": 2
+            },
+            "geometry": {
+              "x": -13042944.2226,
+              "y": 3857855.3213,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery2",
+              "ObjectID": 3
+            },
+            "geometry": {
+              "x": -13043097.166299999,
+              "y": 3857613.8312000036,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery3",
+              "ObjectID": 4
+            },
+            "geometry": {
+              "x": -13042791.2788,
+              "y": 3857332.0926999971,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          }
+        ],
+        "geometryType": "esriGeometryPoint"
+      },
+      "layerDefinition": {
+        "allowGeometryUpdates": true,
+        "capabilities": "Create,Delete,Query,Update,Editing",
+        "defaultVisibility": true,
+        "drawingInfo": {
+          "renderer": {
+            "rotationType": "geographic",
+            "symbol": {
+              "angle": 0,
+              "color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "size": 3.75,
+              "style": "esriSMSCircle",
+              "type": "esriSMS",
+              "xoffset": 0,
+              "yoffset": 0
+            },
+            "type": "simple"
+          },
+          "transparency": 0
+        },
+        "extent": {
+          "xmin": -13043097.166299999,
+          "ymin": 3857332.0926999971,
+          "xmax": -13042573.937800001,
+          "ymax": 3857855.3213,
+          "spatialReference": {
+            "wkid": 102100,
+            "latestWkid": 3857
+          }
+        },
+        "fields": [
+          {
+            "alias": "Name",
+            "editable": true,
+            "length": 50,
+            "name": "Name",
+            "nullable": true,
+            "type": "esriFieldTypeString"
+          },
+          {
+            "editable": false,
+            "length": 0,
+            "name": "ObjectID",
+            "nullable": false,
+            "type": "esriFieldTypeOID"
+          }
+        ],
+        "geometryType": "esriGeometryPoint",
+        "hasM": false,
+        "hasZ": false,
+        "hasAttachments": false,
+        "isDataVersioned": false,
+        "spatialReference": {
+          "wkid": 102100,
+          "latestWkid": 3857
+        },
+        "supportsAdvancedQueries": false,
+        "supportsRollbackOnFailureParameter": false,
+        "supportsStatististcs": false,
+        "type": "Feature Layer"
+      },
+      "nextObjectId": 5
+    },
+    {
+      "featureSet": {
+        "features": [
+          {
+            "attributes": {
+              "Name": "delivery0",
+              "ObjectID": 1
+            },
+            "geometry": {
+              "x": -13041487.2323,
+              "y": 3857122.8012999967,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery1",
+              "ObjectID": 2
+            },
+            "geometry": {
+              "x": -13041382.5866,
+              "y": 3857468.9371000007,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery2",
+              "ObjectID": 3
+            },
+            "geometry": {
+              "x": -13041607.977400001,
+              "y": 3857646.0298999995,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery3",
+              "ObjectID": 4
+            },
+            "geometry": {
+              "x": -13041632.126400001,
+              "y": 3858000.2153000012,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          }
+        ],
+        "geometryType": "esriGeometryPoint"
+      },
+      "layerDefinition": {
+        "allowGeometryUpdates": true,
+        "capabilities": "Create,Delete,Query,Update,Editing",
+        "defaultVisibility": true,
+        "drawingInfo": {
+          "renderer": {
+            "rotationType": "geographic",
+            "symbol": {
+              "angle": 0,
+              "color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "size": 3.75,
+              "style": "esriSMSCircle",
+              "type": "esriSMS",
+              "xoffset": 0,
+              "yoffset": 0
+            },
+            "type": "simple"
+          },
+          "transparency": 0
+        },
+        "extent": {
+          "xmin": -13041632.126400001,
+          "ymin": 3857122.8012999967,
+          "xmax": -13041382.5866,
+          "ymax": 3858000.2153000012,
+          "spatialReference": {
+            "wkid": 102100,
+            "latestWkid": 3857
+          }
+        },
+        "fields": [
+          {
+            "alias": "Name",
+            "editable": true,
+            "length": 50,
+            "name": "Name",
+            "nullable": true,
+            "type": "esriFieldTypeString"
+          },
+          {
+            "editable": false,
+            "length": 0,
+            "name": "ObjectID",
+            "nullable": false,
+            "type": "esriFieldTypeOID"
+          }
+        ],
+        "geometryType": "esriGeometryPoint",
+        "hasM": false,
+        "hasZ": false,
+        "hasAttachments": false,
+        "isDataVersioned": false,
+        "spatialReference": {
+          "wkid": 102100,
+          "latestWkid": 3857
+        },
+        "supportsAdvancedQueries": false,
+        "supportsRollbackOnFailureParameter": false,
+        "supportsStatististcs": false,
+        "type": "Feature Layer"
+      },
+      "nextObjectId": 5
+    },
+    {
+      "featureSet": {
+        "features": [
+          {
+            "attributes": {
+              "Name": "delivery0",
+              "ObjectID": 1
+            },
+            "geometry": {
+              "x": -13043322.557,
+              "y": 3856994.0066,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery1",
+              "ObjectID": 2
+            },
+            "geometry": {
+              "x": -13043435.2524,
+              "y": 3857090.6026000008,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery2",
+              "ObjectID": 3
+            },
+            "geometry": {
+              "x": -13043443.302099999,
+              "y": 3857299.8941000029,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery3",
+              "ObjectID": 4
+            },
+            "geometry": {
+              "x": -13043427.2027,
+              "y": 3857501.1357999966,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          },
+          {
+            "attributes": {
+              "Name": "delivery4",
+              "ObjectID": 5
+            },
+            "geometry": {
+              "x": -13043419.153099999,
+              "y": 3857646.0298999995,
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              }
+            }
+          }
+        ],
+        "geometryType": "esriGeometryPoint"
+      },
+      "layerDefinition": {
+        "allowGeometryUpdates": true,
+        "capabilities": "Create,Delete,Query,Update,Editing",
+        "defaultVisibility": true,
+        "drawingInfo": {
+          "renderer": {
+            "rotationType": "geographic",
+            "symbol": {
+              "angle": 0,
+              "color": [
+                0,
+                0,
+                0,
+                255
+              ],
+              "size": 3.75,
+              "style": "esriSMSCircle",
+              "type": "esriSMS",
+              "xoffset": 0,
+              "yoffset": 0
+            },
+            "type": "simple"
+          },
+          "transparency": 0
+        },
+        "extent": {
+          "xmin": -13043443.302099999,
+          "ymin": 3856994.0066,
+          "xmax": -13043322.557,
+          "ymax": 3857646.0298999995,
+          "spatialReference": {
+            "wkid": 102100,
+            "latestWkid": 3857
+          }
+        },
+        "fields": [
+          {
+            "alias": "Name",
+            "editable": true,
+            "length": 50,
+            "name": "Name",
+            "nullable": true,
+            "type": "esriFieldTypeString"
+          },
+          {
+            "editable": false,
+            "length": 0,
+            "name": "ObjectID",
+            "nullable": false,
+            "type": "esriFieldTypeOID"
+          }
+        ],
+        "geometryType": "esriGeometryPoint",
+        "hasM": false,
+        "hasZ": false,
+        "hasAttachments": false,
+        "isDataVersioned": false,
+        "spatialReference": {
+          "wkid": 102100,
+          "latestWkid": 3857
+        },
+        "supportsAdvancedQueries": false,
+        "supportsRollbackOnFailureParameter": false,
+        "supportsStatististcs": false,
+        "type": "Feature Layer"
+      },
+      "nextObjectId": 6
+    }
+  ],
+  "showLegend": true
+}
