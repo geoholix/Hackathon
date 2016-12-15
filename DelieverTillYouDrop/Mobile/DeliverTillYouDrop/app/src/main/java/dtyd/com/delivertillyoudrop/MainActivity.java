@@ -135,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
 
             Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
             mGraphicsOverlay.getGraphics().add(routeGraphic);
+
+            mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
           }
         });
       }
