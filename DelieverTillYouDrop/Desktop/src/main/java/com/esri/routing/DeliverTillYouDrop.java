@@ -228,28 +228,7 @@ public class DeliverTillYouDrop extends Application {
             routeParameters.setOutputSpatialReference(ESPG_3857);
             routeParameters.setReturnStops(true);
             routeParameters.setReturnDirections(true);
-            route1 = new ArrayList<>();
-            route1.add(new Point(-1.304321859640959E7, 3857650.556262654, ESPG_3857));
-            route1.add(new Point(-1.3043212577507617E7, 3857742.8460929478, ESPG_3857));
-            route1.add(new Point(-1.3043113377983175E7, 3857815.451480437, ESPG_3857));
-            route1.add(new Point(-1.3043013444223E7, 3857867.451071079, ESPG_3857));
-            route2 = new ArrayList<>();
-            route2.add(new Point(-1.3043203549154652E7, 3857485.036458323, ESPG_3857));
-            route2.add(new Point(-1.3043211574357286E7, 3857408.7970332974, ESPG_3857));
-            route2.add(new Point(-1.30431915113507E7, 3857214.1858694176, ESPG_3857));
-            route2.add(new Point(-1.3043019972644394E7, 3857176.0661569047, ESPG_3857));
-            route3 = new ArrayList<>();
-            route3.add(new Point(-1.3042825361480514E7, 3857668.6129685817, ESPG_3857));
-            route3.add(new Point(-1.3042791254369318E7, 3857768.9280015095, ESPG_3857));
-            route3.add(new Point(-1.3042709999192646E7, 3857857.205230486, ESPG_3857));
-            route3.add(new Point(-1.3042793260669976E7, 3857911.3753482676, ESPG_3857));
-            route3.add(new Point(-1.3042824358330185E7, 3858018.7124335007, ESPG_3857));
-            route4 = new ArrayList<>();
-            route4.add(new Point(-1.3043095208919091E7, 3858187.2416888196, ESPG_3857));
-            route4.add(new Point(-1.3043014956892747E7, 3858295.581924382, ESPG_3857));
-            route4.add(new Point(-1.304291564501015E7, 3858290.5661727358, ESPG_3857));
-            route4.add(new Point(-1.3042880534748625E7, 3858180.219636515, ESPG_3857));
-            route4.add(new Point(-1.3042756144107793E7, 3858187.2416888196, ESPG_3857));
+            createRoutes();
           } catch (Exception ex) {
             ex.printStackTrace();
           }
@@ -263,6 +242,31 @@ public class DeliverTillYouDrop extends Application {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  private void createRoutes() {
+    route1 = new ArrayList<>();
+    route1.add(new Point(-1.304321859640959E7, 3857650.556262654, ESPG_3857));
+    route1.add(new Point(-1.3043212577507617E7, 3857742.8460929478, ESPG_3857));
+    route1.add(new Point(-1.3043113377983175E7, 3857815.451480437, ESPG_3857));
+    route1.add(new Point(-1.3043013444223E7, 3857867.451071079, ESPG_3857));
+    route2 = new ArrayList<>();
+    route2.add(new Point(-1.3043203549154652E7, 3857485.036458323, ESPG_3857));
+    route2.add(new Point(-1.3043211574357286E7, 3857408.7970332974, ESPG_3857));
+    route2.add(new Point(-1.30431915113507E7, 3857214.1858694176, ESPG_3857));
+    route2.add(new Point(-1.3043019972644394E7, 3857176.0661569047, ESPG_3857));
+    route3 = new ArrayList<>();
+    route3.add(new Point(-1.3042825361480514E7, 3857668.6129685817, ESPG_3857));
+    route3.add(new Point(-1.3042791254369318E7, 3857768.9280015095, ESPG_3857));
+    route3.add(new Point(-1.3042709999192646E7, 3857857.205230486, ESPG_3857));
+    route3.add(new Point(-1.3042793260669976E7, 3857911.3753482676, ESPG_3857));
+    route3.add(new Point(-1.3042824358330185E7, 3858018.7124335007, ESPG_3857));
+    route4 = new ArrayList<>();
+    route4.add(new Point(-1.3043095208919091E7, 3858187.2416888196, ESPG_3857));
+    route4.add(new Point(-1.3043014956892747E7, 3858295.581924382, ESPG_3857));
+    route4.add(new Point(-1.304291564501015E7, 3858290.5661727358, ESPG_3857));
+    route4.add(new Point(-1.3042880534748625E7, 3858180.219636515, ESPG_3857));
+    route4.add(new Point(-1.3042756144107793E7, 3858187.2416888196, ESPG_3857));
   }
 
   private void addRoute(List<Point> points, int color) throws Exception {
@@ -287,9 +291,6 @@ public class DeliverTillYouDrop extends Application {
     routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(3), stop4Text));
     RouteResult result = routeTask.solveRouteAsync(routeParameters).get();
     List<Route> routes = result.getRoutes();
-    // if (routes.size() < 1) {
-    // directionsList.getItems().add("No Routes");
-    // }
     Route route = routes.get(0);
     Geometry shape = route.getRouteGeometry();
     routeGraphic = new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, color, 2));
