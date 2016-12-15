@@ -127,8 +127,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             Route route = routeResult.getRoutes().get(0);
-            Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
 
+            if (route == null) {
+              Toast.makeText(MainActivity.this, MSG_FAILED_ROUTE, Toast.LENGTH_SHORT).show();
+              return;
+            }
+
+            Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
             mGraphicsOverlay.getGraphics().add(routeGraphic);
           }
         });
