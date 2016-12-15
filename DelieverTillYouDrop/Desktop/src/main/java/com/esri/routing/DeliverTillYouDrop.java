@@ -30,22 +30,26 @@
  */
 package com.esri.routing;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
@@ -61,7 +65,6 @@ import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol.Style;
 import com.esri.arcgisruntime.symbology.TextSymbol;
 import com.esri.arcgisruntime.symbology.TextSymbol.HorizontalAlignment;
 import com.esri.arcgisruntime.symbology.TextSymbol.VerticalAlignment;
-import com.esri.arcgisruntime.tasks.networkanalysis.DirectionMessageType;
 import com.esri.arcgisruntime.tasks.networkanalysis.Route;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteParameters;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteResult;
@@ -80,7 +83,6 @@ public class DeliverTillYouDrop extends Application {
 
   private final SpatialReference ESPG_3857 = SpatialReference.create(102100);
   private static final int WHITE_COLOR = 0xffffffff;
-  private static final int BLUE_COLOR = 0xff0000ff;
 
   private static final String ROUTE_TASK_SANDIEGO =
       "http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route";
@@ -94,57 +96,75 @@ public class DeliverTillYouDrop extends Application {
       scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
       stage.setTitle("DelieverTillYouDrop");
-      stage.setWidth(800);
+      stage.setWidth(1000);
       stage.setHeight(700);
       stage.setScene(scene);
       stage.show();
 
-      VBox vBoxControl = new VBox(6);
-      vBoxControl.setMaxSize(200, 300);
-      vBoxControl.getStyleClass().add("panel-region");
-
-      Label directionsLabel = new Label("Route directions:");
-      directionsLabel.getStyleClass().add("panel-label");
-
+      // create a control panel
+      HBox hboxControl = new HBox(6);
+      hboxControl.setMaxSize(500, 30);
+      hboxControl.getStyleClass().add("panel-region");
+      VBox selectRouteControl = new VBox(6);
+      selectRouteControl.setMaxSize(200, 30);
+      selectRouteControl.getStyleClass().add("panel-region");
+      Label routesLabel = new Label("Select the Routes to show:");
+      routesLabel.getStyleClass().add("panel-label");
+      // create list of routes
+      ObservableList<String> routesList = FXCollections.observableArrayList();
+      routesList.add("All Routes");
+      routesList.add("Route 1");
+      routesList.add("Route 2");
+      routesList.add("Route 3");
+      routesList.add("Route 4");
+      routesList.add("Route 5");
+      // create combo box
+      ComboBox<String> comboBox = new ComboBox<>(routesList);
+      comboBox.setMaxWidth(Double.MAX_VALUE);
+      comboBox.setDisable(false);
+      selectRouteControl.getChildren().addAll(routesLabel, comboBox);
+      // create buttons for user interaction
+      Label routeButtons = new Label("Routes interaction:");
+      routeButtons.getStyleClass().add("panel-label");
+      Button addRouteButton = new Button("Add route");
+      addRouteButton.setMaxWidth(Double.MAX_VALUE);
+      addRouteButton.setDisable(false);
+      Button deleteRouteButton = new Button("Delete route");
+      deleteRouteButton.setMaxWidth(Double.MAX_VALUE);
+      deleteRouteButton.setDisable(false);
+      VBox routeControl = new VBox(6);
+      routeControl.setMaxSize(150, 30);
+      routeControl.getStyleClass().add("panel-region");
+      routeControl.getChildren().addAll(routeButtons, addRouteButton, deleteRouteButton);
+      Label barriers = new Label("Barriers interaction:");
+      barriers.getStyleClass().add("panel-label");
+      Button addBarrierButton = new Button("Add Barrier");
+      addBarrierButton.setMaxWidth(Double.MAX_VALUE);
+      addBarrierButton.setDisable(false);
+      Button deleteBarrierButton = new Button("Delete Barrier");
+      deleteBarrierButton.setMaxWidth(Double.MAX_VALUE);
+      deleteBarrierButton.setDisable(false);
+      VBox barrierControl = new VBox(6);
+      barrierControl.setMaxSize(150, 30);
+      barrierControl.getStyleClass().add("panel-region");
+      barrierControl.getChildren().addAll(barriers, addBarrierButton, deleteBarrierButton);
+      Label find = new Label("Find/Clear routes:");
+      find.getStyleClass().add("panel-label");
       Button findButton = new Button("Find route");
       findButton.setMaxWidth(Double.MAX_VALUE);
       findButton.setDisable(true);
       Button resetButton = new Button("Reset");
       resetButton.setMaxWidth(Double.MAX_VALUE);
       resetButton.setDisable(true);
+      VBox findRoutesControl = new VBox(6);
+      findRoutesControl.setMaxSize(150, 30);
+      findRoutesControl.getStyleClass().add("panel-region");
+      findRoutesControl.getChildren().addAll(find, findButton, resetButton);
 
-      findButton.setOnAction(e -> {
-        try {
-          RouteResult result = routeTask.solveRouteAsync(routeParameters).get();
-          List<Route> routes = result.getRoutes();
-          if (routes.size() < 1) {
-            directionsList.getItems().add("No Routes");
-          }
-          Route route = routes.get(0);
-          Geometry shape = route.getRouteGeometry();
-          routeGraphic = new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, BLUE_COLOR, 2));
-          routeGraphicsOverlay.getGraphics().add(routeGraphic);
-
-          route.getDirectionManeuvers().stream().flatMap(mvr -> mvr.getManeuverMessages().stream()).filter(ms -> ms
-              .getType().equals(DirectionMessageType.STREET_NAME)).forEach(st -> directionsList.getItems().add(st
-                  .getText()));
-
-          resetButton.setDisable(false);
-          findButton.setDisable(true);
-
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
-      });
-
-      resetButton.setOnAction(e -> {
-        routeGraphicsOverlay.getGraphics().remove(routeGraphic);
-        directionsList.getItems().clear();
-        resetButton.setDisable(true);
-        findButton.setDisable(false);
-      });
-
-      vBoxControl.getChildren().addAll(directionsLabel, directionsList, findButton, resetButton);
+      // TODO: clear the routes from the map
+      // resetButton
+      // add buttons and direction list and label to the control panel
+      hboxControl.getChildren().addAll(selectRouteControl, routeControl, barrierControl, findRoutesControl);
 
       ArcGISMap map = new ArcGISMap(Basemap.createStreets());
 
@@ -157,7 +177,7 @@ public class DeliverTillYouDrop extends Application {
         }
       });
 
-      mapView.setViewpointGeometryAsync(new Envelope(-13067866, 3843014, -13004499, 3871296, ESPG_3857));
+      mapView.setViewpointCenterAsync(new Point(-1.3042962793075608E7, 3857768.9280015198, ESPG_3857), 10000);
 
       mapView.getGraphicsOverlays().add(routeGraphicsOverlay);
 
@@ -184,23 +204,39 @@ public class DeliverTillYouDrop extends Application {
             routeParameters.setReturnStops(true);
             routeParameters.setReturnDirections(true);
 
-            Point stop1Loc = new Point(-1.3018598562659847E7, 3863191.8817135547, ESPG_3857);
-            Point stop2Loc = new Point(-1.3036911787723785E7, 3839935.706521739, ESPG_3857);
+            List<Point> points = new ArrayList<>();
+            points.add(new Point(-1.304321859640959E7, 3857650.556262654, ESPG_3857));
+            points.add(new Point(-1.3043212577507617E7, 3857742.8460929478, ESPG_3857));
+            points.add(new Point(-1.3043113377983175E7, 3857815.451480437, ESPG_3857));
+            points.add(new Point(-1.3043013444223E7, 3857867.451071079, ESPG_3857));
+            addRoute(points, 0xFF0000FF);
 
-            List<Stop> routeStops = routeParameters.getStops();
-            routeStops.add(new Stop(stop1Loc));
-            routeStops.add(new Stop(stop2Loc));
+            points.clear();
+            points.add(new Point(-1.3043203549154652E7, 3857485.036458323, ESPG_3857));
+            points.add(new Point(-1.3043211574357286E7, 3857408.7970332974, ESPG_3857));
+            points.add(new Point(-1.30431915113507E7, 3857214.1858694176, ESPG_3857));
+            points.add(new Point(-1.3043019972644394E7, 3857176.0661569047, ESPG_3857));
+            addRoute(points, 0xFFFF0000);
 
-            SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, BLUE_COLOR, 14);
-            routeGraphicsOverlay.getGraphics().add(new Graphic(stop1Loc, stopMarker));
-            routeGraphicsOverlay.getGraphics().add(new Graphic(stop2Loc, stopMarker));
+            points.clear();
+            points.add(new Point(-1.3042825361480514E7, 3857668.6129685817, ESPG_3857));
+            points.add(new Point(-1.3042791254369318E7, 3857768.9280015095, ESPG_3857));
+            points.add(new Point(-1.3042709999192646E7, 3857857.205230486, ESPG_3857));
+            points.add(new Point(-1.3042793260669976E7, 3857911.3753482676, ESPG_3857));
+            points.add(new Point(-1.3042824358330185E7, 3858018.7124335007, ESPG_3857));
+            addRoute(points, 0xFF00FF00);
 
-            TextSymbol stop1Text = new TextSymbol(10, "1", WHITE_COLOR, HorizontalAlignment.CENTER,
-                VerticalAlignment.MIDDLE);
-            TextSymbol stop2Text = new TextSymbol(10, "2", WHITE_COLOR, HorizontalAlignment.CENTER,
-                VerticalAlignment.MIDDLE);
-            routeGraphicsOverlay.getGraphics().add(new Graphic(stop1Loc, stop1Text));
-            routeGraphicsOverlay.getGraphics().add(new Graphic(stop2Loc, stop2Text));
+            points.clear();
+            points.add(new Point(-1.3043095208919091E7, 3858187.2416888196, ESPG_3857));
+            points.add(new Point(-1.3043014956892747E7, 3858295.581924382, ESPG_3857));
+            points.add(new Point(-1.304291564501015E7, 3858290.5661727358, ESPG_3857));
+            points.add(new Point(-1.3042880534748625E7, 3858180.219636515, ESPG_3857));
+            points.add(new Point(-1.3042756144107793E7, 3858187.2416888196, ESPG_3857));
+            addRoute(points, 0xFFFFFF00);
+
+            //            route.getDirectionManeuvers().stream().flatMap(mvr -> mvr.getManeuverMessages().stream()).filter(ms -> ms
+            //                .getType().equals(DirectionMessageType.STREET_NAME)).forEach(st -> directionsList.getItems().add(st
+            //                    .getText()));
 
           } catch (Exception ex) {
             ex.printStackTrace();
@@ -211,13 +247,52 @@ public class DeliverTillYouDrop extends Application {
         e.printStackTrace();
       }
 
-      stackPane.getChildren().addAll(mapView, vBoxControl);
-      StackPane.setAlignment(vBoxControl, Pos.TOP_LEFT);
-      StackPane.setMargin(vBoxControl, new Insets(10, 0, 0, 10));
+      stackPane.getChildren().addAll(mapView, hboxControl);
+      StackPane.setAlignment(hboxControl, Pos.TOP_LEFT);
+      StackPane.setMargin(hboxControl, new Insets(10, 0, 0, 10));
 
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  private void addRoute(List<Point> points, int color) throws Exception {
+    List<Stop> routeStops = routeParameters.getStops();
+    routeStops.clear();
+    routeStops.add(new Stop(points.get(0)));
+    routeStops.add(new Stop(points.get(1)));
+    routeStops.add(new Stop(points.get(2)));
+    routeStops.add(new Stop(points.get(3)));
+
+    SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, color, 14);
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(0), stopMarker));
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(1), stopMarker));
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(2), stopMarker));
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(3), stopMarker));
+
+    TextSymbol stop1Text = new TextSymbol(10, "1", WHITE_COLOR, HorizontalAlignment.CENTER,
+        VerticalAlignment.MIDDLE);
+    TextSymbol stop2Text = new TextSymbol(10, "2", WHITE_COLOR, HorizontalAlignment.CENTER,
+        VerticalAlignment.MIDDLE);
+    TextSymbol stop3Text = new TextSymbol(10, "3", WHITE_COLOR, HorizontalAlignment.CENTER,
+        VerticalAlignment.MIDDLE);
+    TextSymbol stop4Text = new TextSymbol(10, "4", WHITE_COLOR, HorizontalAlignment.CENTER,
+        VerticalAlignment.MIDDLE);
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(0), stop1Text));
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(1), stop2Text));
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(2), stop3Text));
+    routeGraphicsOverlay.getGraphics().add(new Graphic(points.get(3), stop4Text));
+
+    RouteResult result = routeTask.solveRouteAsync(routeParameters).get();
+    List<Route> routes = result.getRoutes();
+    //    if (routes.size() < 1) {
+    //      directionsList.getItems().add("No Routes");
+    //    }
+
+    Route route = routes.get(0);
+    Geometry shape = route.getRouteGeometry();
+    routeGraphic = new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, color, 2));
+    routeGraphicsOverlay.getGraphics().add(routeGraphic);
   }
 
   /**
