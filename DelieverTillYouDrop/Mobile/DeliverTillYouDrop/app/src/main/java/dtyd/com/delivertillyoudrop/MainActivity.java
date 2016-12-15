@@ -4,12 +4,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -39,13 +41,11 @@ import com.esri.arcgisruntime.tasks.networkanalysis.RouteResult;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteTask;
 import com.esri.arcgisruntime.tasks.networkanalysis.Stop;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
-  private final static String MSG_FAILED_ROUTE = "Failed to initialize delivery route";
+  private final static String MSG_FAILED_ROUTE = "Failed to recalculate delivery route";
 
   private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(200,0,209,92), 5);
 
@@ -59,8 +59,6 @@ public class MainActivity extends AppCompatActivity {
   private final RouteTask mRouteTask = new RouteTask("http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route");;
 
   private final GraphicsOverlay mGraphicsOverlay = new GraphicsOverlay();;
-
-  private final List<PointBarrier> mBarriers = new ArrayList<>();
 
   RouteParameters mRouteParams = null;
 
@@ -112,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     mMapView = (MapView) findViewById(R.id.map_view);
-    mMapView.setOnTouchListener(new MapViewOnTouchListener(this, mMapView, mBarriers));
+    mMapView.setOnTouchListener(new MapViewOnTouchListener(this, mMapView));
     mMapView.getGraphicsOverlays().add(mGraphicsOverlay);
 
     mMap = new ArcGISMap(Basemap.createNavigationVector());
@@ -223,8 +221,7 @@ public class MainActivity extends AppCompatActivity {
    */
   private class MapViewOnTouchListener extends DefaultMapViewOnTouchListener {
 
-    public MapViewOnTouchListener(Context context,
-        MapView mapView, List<PointBarrier> barriers) {
+    public MapViewOnTouchListener(Context context, MapView mapView) {
       super(context, mapView);
     }
 
@@ -232,7 +229,15 @@ public class MainActivity extends AppCompatActivity {
 
       Point mapPoint = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(), (int)e.getY()));
       if (mapPoint != null) {
-        mBarriers.add(new PointBarrier(mapPoint));
+
+        Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for 100 milliseconds
+        v.vibrate(100);
+
+        mRouteParams.getPointBarriers().add(new PointBarrier(mapPoint));
+
+        // once we have added a new barrier we need to recalculate the route
+        router();
       }
     }
   }
