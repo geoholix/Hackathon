@@ -66,8 +66,7 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    final BitmapDrawable b = (BitmapDrawable)ContextCompat.getDrawable(this, R.drawable.ic_stop);
-    DELIVER_SYMBOL = new PictureMarkerSymbol(b);
+    DELIVER_SYMBOL = new PictureMarkerSymbol((BitmapDrawable)ContextCompat.getDrawable(this, R.drawable.ic_stop));
 
     setContentView(R.layout.activity_main);
 
@@ -184,10 +183,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Graphic routeGraphic = new Graphic(route.getRouteGeometry(), ROUTE_SYMBOL);
-        Graphic routeSteerPoint = new Graphic(route.getRouteGeometry(), DELIVER_SYMBOL);
+
         mGraphicsOverlay.getGraphics().clear();
         mGraphicsOverlay.getGraphics().add(routeGraphic);
-        mGraphicsOverlay.getGraphics().add(routeSteerPoint);
+
+
+        for (int i = 0; i < mRouteParams.getStops().size(); i++) {
+          Graphic routeSteerPoint = new Graphic(mRouteParams.getStops().get(i).getGeometry(), DELIVER_SYMBOL);
+          mGraphicsOverlay.getGraphics().add(routeSteerPoint);
+        }
 
         mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
       }
