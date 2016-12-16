@@ -54,8 +54,10 @@ public class MainActivity extends AppCompatActivity {
 
   private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(200,0,209,92), 5);
 
+  private final static Symbol BARRIER_SYMBOL = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CROSS, Color.argb(255,209,77,1), 20);
+
   private final static Symbol DELIVER_SYMBOL = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,1,77,100), 25);
-  private final static Symbol DELIVER_CURRENT_SYMBOL = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,201,77,1), 27);
+  private final static Symbol DELIVER_CURRENT_SYMBOL = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,100,177,201), 27);
 
   private MapView mMapView;
 
@@ -175,12 +177,19 @@ public class MainActivity extends AppCompatActivity {
           //create text symbols
           TextSymbol text =
                   new TextSymbol(
-                          18, String.valueOf(mDeliveredCount + i + 1), (i == 0) ? Color.argb(255,255,144,10) : Color.argb(200,0,209,92),
+                          18, String.valueOf(mDeliveredCount + i + 1), (i == 0) ? Color.argb(255,1,77,100) : Color.argb(200,0,209,92),
                           TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
           Graphic textGraphic = new Graphic(mRouteParams.getStops().get(i).getGeometry(), text);
 
           //add the text to the graphics overlay
           mGraphicsOverlay.getGraphics().add(textGraphic);
+        }
+
+        // Barrier graphics
+        for (int i = 0; i < mRouteParams.getPointBarriers().size(); i++) {
+          Graphic barrierPoint = new Graphic(mRouteParams.getPointBarriers().get(i).getGeometry(),
+                  BARRIER_SYMBOL);
+          mGraphicsOverlay.getGraphics().add(barrierPoint);
         }
 
         mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
