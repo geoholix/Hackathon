@@ -1,6 +1,8 @@
 package dtyd.com.delivertillyoudrop;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -8,7 +10,9 @@ import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -79,19 +83,7 @@ public class MainActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        // Mark as delivered
-        if (mRouteParams.getStops().size() > 2)
-        {
-          mMapView = (MapView) findViewById(R.id.map_view);
-          mRouteParams.getStops().remove(0);
-          router();
-        }else if (mRouteParams.getStops().size() > 0)
-        {
-          mRouteParams.getStops().clear();
-          mGraphicsOverlay.getGraphics().clear();
-        }
-
-        ++mDeliveredCount;
+        getDeliveryOptionsDialog().show();
       }
     });
 
@@ -233,6 +225,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     return super.onOptionsItemSelected(item);
+  }
+
+  private Dialog getDeliveryOptionsDialog(){
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle("Delivery Options")
+            .setItems(R.array.deliver_options, new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialogInterface, int i) {
+                switch (i){
+                  case 0:
+                    break;
+                }
+                // Mark as delivered
+                if (mRouteParams.getStops().size() > 2)
+                {
+                  mMapView = (MapView) findViewById(R.id.map_view);
+                  mRouteParams.getStops().remove(0);
+                  router();
+                }else if (mRouteParams.getStops().size() > 0)
+                {
+                  mRouteParams.getStops().clear();
+                  mGraphicsOverlay.getGraphics().clear();
+                }
+
+                ++mDeliveredCount;
+              }
+            });
+
+    return builder.create();
   }
 
   /**
