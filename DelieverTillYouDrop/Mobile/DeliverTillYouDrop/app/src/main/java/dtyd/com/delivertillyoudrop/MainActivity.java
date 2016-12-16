@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
   private final GraphicsOverlay mGraphicsOverlay = new GraphicsOverlay();
   private int mDeliveredCount;
+  private boolean mLongPressDown;
 
   RouteParameters mRouteParams = null;
 
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
+
 
     FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
@@ -117,6 +119,8 @@ public class MainActivity extends AppCompatActivity {
         setupDeliveryRoute();
       }
     });
+
+    mMapView.setMagnifierEnabled(true);
   }
 
   private void setupDeliveryRoute() {
@@ -266,19 +270,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override public void onLongPress(MotionEvent e) {
+      super.onLongPress(e);
 
-      Point mapPoint = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(), (int)e.getY()));
-      if (mapPoint != null) {
+      mLongPressDown = true;
+    }
 
-        Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
-        // Vibrate for 100 milliseconds
-        v.vibrate(100);
+    @Override
+    public boolean onUp(MotionEvent e) {
+      super.onUp(e);
+      
+      if (mLongPressDown) {
+        Point mapPoint = mMapView.screenToLocation(new android.graphics.Point((int) e.getX(), (int) e.getY()));
+        if (mapPoint != null) {
 
-        mRouteParams.getPointBarriers().add(new PointBarrier(mapPoint));
+          mLongPressDown = false;
 
-        // once we have added a new barrier we need to recalculate the route
-        router();
+          Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
+          // Vibrate for 100 milliseconds
+          v.vibrate(100);
+
+          mRouteParams.getPointBarriers().add(new PointBarrier(mapPoint));
+
+          // once we have added a new barrier we need to recalculate the route
+          router();
+        }
       }
+      return true;
     }
   }
 }
