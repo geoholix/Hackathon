@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Deliver Till You Drop</string>
     <string name="action_settings">Settings</string>
+
+    <array name="deliver_options">
+        <item>Delivered</item>
+        <item>Failed to deliver</item>
+    </array>
 </resources>
