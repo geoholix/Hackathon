@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
-  private final static String MSG_FAILED_ROUTE = "Failed to recalculate delivery route";
+  private final static String MSG_FAILED_ROUTE = "No other alternative route available";
 
   private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(200,0,209,92), 5);
 
