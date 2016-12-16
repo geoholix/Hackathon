@@ -16,6 +16,7 @@
 package com.esri.routing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -66,6 +67,7 @@ public class DeliverTillYouDropController {
   @FXML private Button removeRouteButton;
   @FXML private Button addBarrierButton;
   @FXML private Button removeBarrierButton;
+  @FXML private Button syncButton;
 
   private boolean isAddingBarriers = false;
   private boolean isRemovingBarriers = false;
@@ -133,6 +135,7 @@ public class DeliverTillYouDropController {
       setupMapViewInteraction();
       addRouteSelectionControls();
       addRemoveRouteControls();
+      syncRoutesControls();
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -346,6 +349,15 @@ public class DeliverTillYouDropController {
     });
   }
 
+  private void syncRoutesControls() {
+    syncButton.setOnAction(e -> {
+      for (int i = 0; i < routePoints.size(); i++) {
+        List<Point> points = routePoints.get(i);
+        addRoute(Arrays.asList(points.get(0), points.get(1)), 0xFF00FFFF);
+      }
+    });
+  }
+
   private void addData() {
     ObservableList<String> routesList = FXCollections.observableArrayList();
     routesList.add("All Routes");
@@ -354,7 +366,7 @@ public class DeliverTillYouDropController {
     routesList.add("Blue Route");
     routesList.add("Magenta Route");
     routesList.add("Yellow Route");
-    routesList.add("Aqua Route");
+    routesList.add("Brown Route");
     routesList.add("Orange Route");
     routesList.add("Purple Route");
     routesList.add("Lime Green Route");
@@ -365,7 +377,7 @@ public class DeliverTillYouDropController {
     colors.add(0xFF0000FF);
     colors.add(0xFFFF00FF);
     colors.add(0xFFFFFF00);
-    colors.add(0xFF00FFFF);
+    colors.add(0xFF964514);
     colors.add(0xFFFFA500);
     colors.add(0xFF8A2BE2);
     colors.add(0xFF93FF14);
