@@ -84,19 +84,6 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void onClick(View view) {
         getDeliveryOptionsDialog().show();
-        // Mark as delivered
-        if (mRouteParams.getStops().size() > 2)
-        {
-          mMapView = (MapView) findViewById(R.id.map_view);
-          mRouteParams.getStops().remove(0);
-          router();
-        }else if (mRouteParams.getStops().size() > 0)
-        {
-          mRouteParams.getStops().clear();
-          mGraphicsOverlay.getGraphics().clear();
-        }
-
-        ++mDeliveredCount;
       }
     });
 
@@ -261,6 +248,8 @@ public class MainActivity extends AppCompatActivity {
                   mRouteParams.getStops().clear();
                   mGraphicsOverlay.getGraphics().clear();
                 }
+
+                ++mDeliveredCount;
               }
             });
 
