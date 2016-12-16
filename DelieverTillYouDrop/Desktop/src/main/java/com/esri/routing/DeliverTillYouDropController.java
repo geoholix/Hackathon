@@ -30,11 +30,15 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.input.MouseButton;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureCollection;
 import com.esri.arcgisruntime.data.FeatureCollectionTable;
+import com.esri.arcgisruntime.data.Field;
 import com.esri.arcgisruntime.geometry.Geometry;
+import com.esri.arcgisruntime.geometry.GeometryType;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.Graphic;
@@ -65,22 +69,21 @@ public class DeliverTillYouDropController {
 
   private boolean isAddingBarriers = false;
   private boolean isRemovingBarriers = false;
+  private boolean isAddingRoute = false;
+  private boolean isRouteSelected = false;
 
-  private int[] colors = new int[] {
-      0xFFFF0000, 0xFF00FF00, 0xFF0000FF,
-      0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,
-      0xFFFFA500, 0xFF8A2BE2, 0xFF93FF14,
-      0xFFFF1493
-  };
+  private List<Integer> colors = new ArrayList<>();
   private List<Route> routes = new ArrayList<>();
   private ParseRoutes routeParser;
   private Executor threadPool = Executors.newSingleThreadExecutor();
 
   private SimpleMarkerSymbol barrierMarker = new SimpleMarkerSymbol(Style.CIRCLE, 0xFF000000, 14);
+  private SimpleMarkerSymbol newPointMarker = new SimpleMarkerSymbol(Style.CIRCLE, 0xFFC0C0C0, 14);
 
   private List<FeatureCollectionTable> featureTables;
   private List<Point> barrierPoints = new ArrayList<>();
   private List<List<Point>> routePoints = new ArrayList<>();
+  private List<Point> newRoutePoints = new ArrayList<>();
   private GraphicsOverlay routeGraphicsOverlay;
   private GraphicsOverlay barrierGraphicsOverlay;
   private RouteParameters routeParameters;
@@ -100,8 +103,17 @@ public class DeliverTillYouDropController {
     routesList.add("Orange Route");
     routesList.add("Purple Route");
     routesList.add("Lime Green Route");
-    routesList.add("Pink Route");
     comboBox.getItems().addAll(routesList);
+
+    colors.add(0xFFFF0000);
+    colors.add(0xFF00FF00);
+    colors.add(0xFF0000FF);
+    colors.add(0xFFFF00FF);
+    colors.add(0xFFFFFF00);
+    colors.add(0xFF00FFFF);
+    colors.add(0xFFFFA500);
+    colors.add(0xFF8A2BE2);
+    colors.add(0xFF93FF14);
 
     try {
       routeParser = new ParseRoutes(getClass().getResource("/deliveries.txt").getPath());
@@ -140,16 +152,44 @@ public class DeliverTillYouDropController {
       addRouteSelectionControls();
 
       // adding route
-      //      addRouteButton.setOnAction(e -> {
-      //        final ArrayList<Field> fields = new ArrayList<Field>();
-      //        fields.add(Field.createString("Name", "Name", 50));
-      //        FeatureCollectionTable mRoute =
-      //            new FeatureCollectionTable(fields, GeometryType.POINT, SpatialReferences.getWebMercator());
-      //        mRoutes.add(mRoute);
-      //      });
+      addRouteButton.setOnAction(e -> {
+        final ArrayList<Field> fields = new ArrayList<Field>();
+        fields.add(Field.createString("Name", "Name", 50));
+        FeatureCollectionTable table =
+            new FeatureCollectionTable(fields, GeometryType.POINT, SpatialReferences.getWebMercator());
+        if (!isAddingRoute) {
+          isAddingRoute = true;
+        } else {
+          isAddingRoute = false;
+          List<Feature> features = new ArrayList<>();
+          newRoutePoints.forEach(point -> {
+            Feature feature = table.createFeature();
+            feature.setGeometry(point);
+            feature.getAttributes().put("Name", "delivery" + table.getTotalFeatureCount());
+            features.add(feature);
+          });
+          routePoints.add(newRoutePoints);
+          comboBox.getItems().add("Pink Route");
+          try {
+            table.addFeaturesAsync(features).get();
+            featureTables.add(table);
+            colors.add(0xFFFF1493);
+            addRoute(newRoutePoints, 0xFFFF1493);
+          } catch (Exception ex) {
+            ex.printStackTrace();
+          }
+        }
+      });
 
-      //      removeRouteButton.setOnAction(e -> {
-      //      });
+      removeRouteButton.setOnAction(e -> {
+        if (isRouteSelected) {
+          // delete route
+          int selectedRoute = (comboBox.getSelectionModel().getSelectedIndex() - 1);
+          routePoints.remove(selectedRoute);
+          colors.remove(selectedRoute);
+          threadPool.execute(this::updateRoute);
+        }
+      });
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -158,14 +198,18 @@ public class DeliverTillYouDropController {
 
   private void createRoutes() {
 
+    int colorCounter = 0;
     for (int i = 0; i < featureTables.size(); i++) {
       List<Point> points = new ArrayList<>();
       //              points.add(new Point(-1.3041955459030736E7, 3857073.8022902417, ESPG_3857));
       featureTables.get(i).forEach(feature -> {
         points.add((Point) feature.getGeometry());
       });
-      routePoints.add(points);
-      addRoute(points, colors[i]);
+      if (points.size() > 0) {
+        routePoints.add(points);
+        addRoute(points, colors.get(colorCounter));
+        colorCounter++;
+      }
     }
   }
 
@@ -173,12 +217,14 @@ public class DeliverTillYouDropController {
 
     routeGraphicsOverlay.getGraphics().clear();
     barrierGraphicsOverlay.getGraphics().clear();
+    routes.clear();
 
     barrierPoints.forEach(point -> {
       barrierGraphicsOverlay.getGraphics().add(new Graphic(point, barrierMarker));
     });
+
     for (int i = 0; i < routePoints.size(); i++) {
-      addRoute(routePoints.get(i), colors[i]);
+      addRoute(routePoints.get(i), colors.get(i));
     }
   }
 
@@ -216,6 +262,8 @@ public class DeliverTillYouDropController {
       } catch (Exception e) {
         e.printStackTrace();
       }
+    } else {
+
     }
   }
 
@@ -268,6 +316,9 @@ public class DeliverTillYouDropController {
               ex.printStackTrace();
             }
           });
+        } else if (isAddingRoute) {
+          newRoutePoints.add(mapPoint);
+          routeGraphicsOverlay.getGraphics().add(new Graphic(mapPoint, newPointMarker));
         }
       }
     });
@@ -276,18 +327,17 @@ public class DeliverTillYouDropController {
   private void addRouteSelectionControls() {
 
     comboBox.setOnAction((event) -> {
-      // clears the graphics
-      // Get selected route(s)
+
       int selectedRoute = (comboBox.getSelectionModel().getSelectedIndex() - 1);
-      //        addRoute(routes.get(0), GREEN_COLOR);
       if (selectedRoute != -1) {
+        isRouteSelected = true;
         routeGraphicsOverlay.getGraphics().clear();
         Geometry shape = routes.get(selectedRoute).getRouteGeometry();
         Graphic routeGraphic =
-            new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, colors[selectedRoute], 2));
+            new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, colors.get(selectedRoute), 2));
         routeGraphicsOverlay.getGraphics().add(routeGraphic);
 
-        SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, colors[selectedRoute], 14);
+        SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, colors.get(selectedRoute), 14);
         TextSymbol stop1Text = new TextSymbol(10, "1", 0xFF000000, HorizontalAlignment.CENTER,
             VerticalAlignment.MIDDLE);
         routePoints.get(selectedRoute).forEach(point -> {
@@ -295,6 +345,7 @@ public class DeliverTillYouDropController {
           routeGraphicsOverlay.getGraphics().add(new Graphic(point, stop1Text));
         });
       } else {
+        isRouteSelected = false;
         threadPool.execute(this::updateRoute);
       }
     });
