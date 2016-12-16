@@ -71,6 +71,8 @@ public class DeliverTillYouDropController {
   private boolean isRemovingBarriers = false;
   private boolean isAddingRoute = false;
   private boolean isRouteSelected = false;
+
+  private int numberColor = 0xFF000000;
   private int numberStops;
 
   private List<Integer> colors = new ArrayList<>();
@@ -93,28 +95,7 @@ public class DeliverTillYouDropController {
 
   public void initialize() {
 
-    ObservableList<String> routesList = FXCollections.observableArrayList();
-    routesList.add("All Routes");
-    routesList.add("Red Route");
-    routesList.add("Green Route");
-    routesList.add("Blue Route");
-    routesList.add("Magenta Route");
-    routesList.add("Yellow Route");
-    routesList.add("Aqua Route");
-    routesList.add("Orange Route");
-    routesList.add("Purple Route");
-    routesList.add("Lime Green Route");
-    comboBox.getItems().addAll(routesList);
-
-    colors.add(0xFFFF0000);
-    colors.add(0xFF00FF00);
-    colors.add(0xFF0000FF);
-    colors.add(0xFFFF00FF);
-    colors.add(0xFFFFFF00);
-    colors.add(0xFF00FFFF);
-    colors.add(0xFFFFA500);
-    colors.add(0xFF8A2BE2);
-    colors.add(0xFF93FF14);
+    addData();
 
     try {
       routeParser = new ParseRoutes(getClass().getResource("/deliveries.txt").getPath());
@@ -151,46 +132,7 @@ public class DeliverTillYouDropController {
       addRemoveBarrierControls();
       setupMapViewInteraction();
       addRouteSelectionControls();
-
-      // adding route
-      addRouteButton.setOnAction(e -> {
-        final ArrayList<Field> fields = new ArrayList<Field>();
-        fields.add(Field.createString("Name", "Name", 50));
-        FeatureCollectionTable table =
-            new FeatureCollectionTable(fields, GeometryType.POINT, SpatialReferences.getWebMercator());
-        if (!isAddingRoute) {
-          isAddingRoute = true;
-        } else {
-          isAddingRoute = false;
-          List<Feature> features = new ArrayList<>();
-          newRoutePoints.forEach(point -> {
-            Feature feature = table.createFeature();
-            feature.setGeometry(point);
-            feature.getAttributes().put("Name", "delivery" + table.getTotalFeatureCount());
-            features.add(feature);
-          });
-          routePoints.add(newRoutePoints);
-          comboBox.getItems().add("Pink Route");
-          try {
-            table.addFeaturesAsync(features).get();
-            featureTables.add(table);
-            colors.add(0xFFFF1493);
-            addRoute(newRoutePoints, 0xFFFF1493);
-          } catch (Exception ex) {
-            ex.printStackTrace();
-          }
-        }
-      });
-
-      removeRouteButton.setOnAction(e -> {
-        if (isRouteSelected) {
-          // delete route
-          int selectedRoute = (comboBox.getSelectionModel().getSelectedIndex() - 1);
-          routePoints.remove(selectedRoute);
-          colors.remove(selectedRoute);
-          threadPool.execute(this::updateRoute);
-        }
-      });
+      addRemoveRouteControls();
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -202,7 +144,6 @@ public class DeliverTillYouDropController {
     int colorCounter = 0;
     for (int i = 0; i < featureTables.size(); i++) {
       List<Point> points = new ArrayList<>();
-      //              points.add(new Point(-1.3041955459030736E7, 3857073.8022902417, ESPG_3857));
       featureTables.get(i).forEach(feature -> {
         points.add((Point) feature.getGeometry());
       });
@@ -239,7 +180,7 @@ public class DeliverTillYouDropController {
     numberStops = 1;
     points.forEach(point -> {
       routeStops.add(new Stop(point));
-      TextSymbol stop1Text = new TextSymbol(14, String.valueOf(numberStops), 0xFF000000, HorizontalAlignment.CENTER,
+      TextSymbol stop1Text = new TextSymbol(14, String.valueOf(numberStops), numberColor, HorizontalAlignment.CENTER,
           VerticalAlignment.MIDDLE);
       routeGraphicsOverlay.getGraphics().add(new Graphic(point, stopMarker));
       routeGraphicsOverlay.getGraphics().add(new Graphic(point, stop1Text));
@@ -275,17 +216,65 @@ public class DeliverTillYouDropController {
     addBarrierButton.setOnAction(e -> {
       if (!isAddingBarriers) {
         isAddingBarriers = true;
+        addBarrierButton.setText("Submit Changes");
       } else {
         isAddingBarriers = false;
         threadPool.execute(this::updateRoute);
+        addBarrierButton.setText("Add Barriers");
       }
     });
 
     removeBarrierButton.setOnAction(e -> {
       if (!isRemovingBarriers) {
         isRemovingBarriers = true;
+        removeBarrierButton.setText("Submit Changes");
       } else {
+        removeBarrierButton.setText("Remove Barriers");
         isRemovingBarriers = false;
+        threadPool.execute(this::updateRoute);
+      }
+    });
+  }
+
+  private void addRemoveRouteControls() {
+
+    addRouteButton.setOnAction(e -> {
+      final ArrayList<Field> fields = new ArrayList<Field>();
+      fields.add(Field.createString("Name", "Name", 50));
+      FeatureCollectionTable table =
+          new FeatureCollectionTable(fields, GeometryType.POINT, SpatialReferences.getWebMercator());
+      if (!isAddingRoute) {
+        isAddingRoute = true;
+        addRouteButton.setText("Submit Route");
+      } else {
+        isAddingRoute = false;
+        addRouteButton.setText("Add Route");
+        List<Feature> features = new ArrayList<>();
+        newRoutePoints.forEach(point -> {
+          Feature feature = table.createFeature();
+          feature.setGeometry(point);
+          feature.getAttributes().put("Name", "delivery" + table.getTotalFeatureCount());
+          features.add(feature);
+        });
+        routePoints.add(newRoutePoints);
+        comboBox.getItems().add("Pink Route");
+        try {
+          table.addFeaturesAsync(features).get();
+          featureTables.add(table);
+          colors.add(0xFFFF1493);
+          addRoute(newRoutePoints, 0xFFFF1493);
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+      }
+    });
+
+    removeRouteButton.setOnAction(e -> {
+      if (isRouteSelected) {
+        // delete route
+        int selectedRoute = (comboBox.getSelectionModel().getSelectedIndex() - 1);
+        routePoints.remove(selectedRoute);
+        colors.remove(selectedRoute);
         threadPool.execute(this::updateRoute);
       }
     });
@@ -341,17 +330,45 @@ public class DeliverTillYouDropController {
         routeGraphicsOverlay.getGraphics().add(routeGraphic);
 
         SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, colors.get(selectedRoute), 14);
-        TextSymbol stop1Text = new TextSymbol(10, "1", 0xFF000000, HorizontalAlignment.CENTER,
-            VerticalAlignment.MIDDLE);
+        numberStops = 1;
         routePoints.get(selectedRoute).forEach(point -> {
+          TextSymbol stop1Text =
+              new TextSymbol(14, String.valueOf(numberStops), numberColor, HorizontalAlignment.CENTER,
+                  VerticalAlignment.MIDDLE);
           routeGraphicsOverlay.getGraphics().add(new Graphic(point, stopMarker));
           routeGraphicsOverlay.getGraphics().add(new Graphic(point, stop1Text));
+          numberStops++;
         });
       } else {
         isRouteSelected = false;
         threadPool.execute(this::updateRoute);
       }
     });
+  }
+
+  private void addData() {
+    ObservableList<String> routesList = FXCollections.observableArrayList();
+    routesList.add("All Routes");
+    routesList.add("Red Route");
+    routesList.add("Green Route");
+    routesList.add("Blue Route");
+    routesList.add("Magenta Route");
+    routesList.add("Yellow Route");
+    routesList.add("Aqua Route");
+    routesList.add("Orange Route");
+    routesList.add("Purple Route");
+    routesList.add("Lime Green Route");
+    comboBox.getItems().addAll(routesList);
+
+    colors.add(0xFFFF0000);
+    colors.add(0xFF00FF00);
+    colors.add(0xFF0000FF);
+    colors.add(0xFFFF00FF);
+    colors.add(0xFFFFFF00);
+    colors.add(0xFF00FFFF);
+    colors.add(0xFFFFA500);
+    colors.add(0xFF8A2BE2);
+    colors.add(0xFF93FF14);
   }
 
   /**
