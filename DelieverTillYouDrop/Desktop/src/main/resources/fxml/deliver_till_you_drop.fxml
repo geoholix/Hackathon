@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.image.ImageView?>
 
 <?import com.esri.arcgisruntime.mapping.view.MapView?>
 
@@ -14,25 +15,32 @@
            
 	<MapView fx:id="mapView"/>
     
-    <HBox StackPane.alignment="TOP_LEFT" spacing="10" maxWidth="Infinity" maxHeight="30" styleClass="panel-region">
+    <HBox StackPane.alignment="TOP_LEFT" spacing="400" maxWidth="Infinity" maxHeight="30" styleClass="panel-region">
+    <HBox spacing="10" maxWidth="650" maxHeight="30">
       <VBox spacing="6" maxWidth="250" maxHeight="30">
         <Label text="Select the Routes to show: " styleClass="panel-region"/>
         <ComboBox fx:id="comboBox" maxWidth="Infinity" disable="false"/>
       </VBox>
       
-      <VBox spacing="6" maxWidth="200" maxHeight="30" styleClass="panel-region">
+      <VBox spacing="10" maxWidth="200" maxHeight="30">
         <Button fx:id="addRouteButton" text="Add Route" maxWidth="Infinity" disable="false"/>
         <Button fx:id="removeRouteButton" text="Remove Route" maxWidth="Infinity" disable="false"/>
        </VBox>
     
-      <VBox spacing="6" maxWidth="200" maxHeight="30" styleClass="panel-region">
+      <VBox spacing="10" maxWidth="200" maxHeight="30">
         <Button fx:id="addBarrierButton" text="Add Barrier" maxWidth="Infinity" disable="false"/>
         <Button fx:id="removeBarrierButton" text="Remove Barrier" maxWidth="Infinity" disable="false"/>
       </VBox>
       
-      <VBox spacing="6" maxWidth="200" maxHeight="30" styleClass="panel-region">
+      <VBox spacing="10" maxWidth="200" maxHeight="30">
         <Button fx:id="syncButton" text="SyncRoutes" maxWidth="Infinity" disable="false"/>
       </VBox>
+      </HBox>
+      
+      <VBox spacing="6" maxWidth="200" maxHeight="30">
+        <ImageView fx:id="imageView"/>
+      </VBox>
+      
     </HBox>
 </StackPane>
 

@@ -28,6 +28,8 @@ import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
@@ -68,6 +70,7 @@ public class DeliverTillYouDropController {
   @FXML private Button addBarrierButton;
   @FXML private Button removeBarrierButton;
   @FXML private Button syncButton;
+  @FXML private ImageView imageView;
 
   private boolean isAddingBarriers = false;
   private boolean isRemovingBarriers = false;
@@ -98,6 +101,9 @@ public class DeliverTillYouDropController {
   public void initialize() {
 
     addData();
+
+    Image image = new Image("redeem_white.png");
+    imageView.setImage(image);
 
     try {
       routeParser = new ParseRoutes(getClass().getResource("/deliveries.txt").getPath());
