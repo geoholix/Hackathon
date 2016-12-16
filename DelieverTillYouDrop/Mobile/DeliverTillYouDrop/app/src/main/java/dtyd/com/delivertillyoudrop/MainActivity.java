@@ -133,12 +133,17 @@ public class MainActivity extends AppCompatActivity {
           mRouteParams.getStops().add(new Stop((Point) feature.getGeometry()));
         }
 
-        router();
+        router(null);
       }
     });
   }
 
-  private void router() {
+  private void router(final PointBarrier pointBarrier) {
+
+    if (pointBarrier != null) {
+      mRouteParams.getPointBarriers().add(pointBarrier);
+    }
+
     final ListenableFuture<RouteResult> routeResultFuture = mRouteTask.solveRouteAsync(mRouteParams);
 
     routeResultFuture.addDoneListener(new Runnable() {
@@ -149,6 +154,11 @@ public class MainActivity extends AppCompatActivity {
           routeResult = routeResultFuture.get();
         } catch (InterruptedException | ExecutionException e) {
           e.printStackTrace();
+
+          if (pointBarrier != null) {
+            // most likely the failure was due to the last point barrier that has been added - remove it
+            mRouteParams.getPointBarriers().remove(pointBarrier);
+          }
         }
 
         if (routeResult == null || routeResult.getRoutes().size() == 0) {
@@ -234,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
                 {
                   mMapView = (MapView) findViewById(R.id.map_view);
                   mRouteParams.getStops().remove(0);
-                  router();
+                  router(null);
                 }else if (mRouteParams.getStops().size() > 0)
                 {
                   mRouteParams.getStops().clear();
@@ -277,10 +287,8 @@ public class MainActivity extends AppCompatActivity {
           // Vibrate for 100 milliseconds
           v.vibrate(100);
 
-          mRouteParams.getPointBarriers().add(new PointBarrier(mapPoint));
-
-          // once we have added a new barrier we need to recalculate the route
-          router();
+          // once we have a new barrier we need to recalculate the route
+          router(new PointBarrier(mapPoint));
         }
       }
       return true;
