@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
   private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(200,0,209,92), 5);
 
   private final static Symbol DELIVER_SYMBOL = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,1,77,100), 25);
+  private final static Symbol DELIVER_CURRENT_SYMBOL = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,201,77,1), 27);
 
   private MapView mMapView;
 
@@ -190,16 +191,16 @@ public class MainActivity extends AppCompatActivity {
         mGraphicsOverlay.getGraphics().clear();
         mGraphicsOverlay.getGraphics().add(routeGraphic);
 
-
         // Delivery graphics
         for (int i = 0; i < mRouteParams.getStops().size(); i++) {
-          Graphic routeSteerPoint = new Graphic(mRouteParams.getStops().get(i).getGeometry(), DELIVER_SYMBOL);
+          Graphic routeSteerPoint = new Graphic(mRouteParams.getStops().get(i).getGeometry(),
+                  (i == 0) ? DELIVER_CURRENT_SYMBOL : DELIVER_SYMBOL);
           mGraphicsOverlay.getGraphics().add(routeSteerPoint);
 
           //create text symbols
           TextSymbol text =
                   new TextSymbol(
-                          18, String.valueOf(mDeliveredCount + i + 1),  Color.argb(200,0,209,92),
+                          18, String.valueOf(mDeliveredCount + i + 1), (i == 0) ? Color.argb(255,255,144,10) : Color.argb(200,0,209,92),
                           TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
           Graphic textGraphic = new Graphic(mRouteParams.getStops().get(i).getGeometry(), text);
 
