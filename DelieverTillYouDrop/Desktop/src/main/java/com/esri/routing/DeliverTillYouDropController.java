@@ -60,39 +60,68 @@ import com.esri.arcgisruntime.tasks.networkanalysis.Stop;
 
 public class DeliverTillYouDropController {
 
-  @FXML private MapView mapView;
-  @FXML private ComboBox<String> comboBox;
-  @FXML private Button addRouteButton;
-  @FXML private Button removeRouteButton;
-  @FXML private Button addBarrierButton;
-  @FXML private Button removeBarrierButton;
+  @FXML
+  private MapView mapView;
+
+  @FXML
+  private ComboBox<String> comboBox;
+
+  @FXML
+  private Button addRouteButton;
+
+  @FXML
+  private Button removeRouteButton;
+
+  @FXML
+  private Button addBarrierButton;
+
+  @FXML
+  private Button removeBarrierButton;
+
+  @FXML
+  private Button syncButton;
 
   private boolean isAddingBarriers = false;
+
   private boolean isRemovingBarriers = false;
+
   private boolean isAddingRoute = false;
+
   private boolean isRouteSelected = false;
+
   private int numberStops;
 
   private List<Integer> colors = new ArrayList<>();
+
   private List<Route> routes = new ArrayList<>();
+
   private ParseRoutes routeParser;
+
   private Executor threadPool = Executors.newSingleThreadExecutor();
 
   private SimpleMarkerSymbol barrierMarker = new SimpleMarkerSymbol(Style.CIRCLE, 0xFF000000, 14);
+
   private SimpleMarkerSymbol newPointMarker = new SimpleMarkerSymbol(Style.CIRCLE, 0xFFC0C0C0, 14);
 
   private List<FeatureCollectionTable> featureTables;
+
   private List<Point> barrierPoints = new ArrayList<>();
+
   private List<List<Point>> routePoints = new ArrayList<>();
+
   private List<Point> newRoutePoints = new ArrayList<>();
+
   private GraphicsOverlay routeGraphicsOverlay;
+
   private GraphicsOverlay barrierGraphicsOverlay;
+
   private RouteParameters routeParameters;
+
   private RouteTask routeTask;
+
   private final SpatialReference ESPG_3857 = SpatialReference.create(102100);
 
   public void initialize() {
-
     ObservableList<String> routesList = FXCollections.observableArrayList();
     routesList.add("All Routes");
     routesList.add("Red Route");
@@ -100,34 +129,29 @@ public class DeliverTillYouDropController {
     routesList.add("Blue Route");
     routesList.add("Magenta Route");
     routesList.add("Yellow Route");
-    routesList.add("Aqua Route");
+    routesList.add("Brown Route");
     routesList.add("Orange Route");
     routesList.add("Purple Route");
     routesList.add("Lime Green Route");
     comboBox.getItems().addAll(routesList);
-
     colors.add(0xFFFF0000);
     colors.add(0xFF00FF00);
     colors.add(0xFF0000FF);
     colors.add(0xFFFF00FF);
     colors.add(0xFFFFFF00);
-    colors.add(0xFF00FFFF);
+    colors.add(0xFF964514);
     colors.add(0xFFFFA500);
     colors.add(0xFF8A2BE2);
     colors.add(0xFF93FF14);
-
     try {
       routeParser = new ParseRoutes(getClass().getResource("/deliveries.txt").getPath());
-
       ArcGISMap map = new ArcGISMap(Basemap.createStreets());
       mapView.setMap(map);
-
       mapView.setViewpointCenterAsync(new Point(-1.3042962793075608E7, 3857768.9280015198, ESPG_3857), 10000);
       routeGraphicsOverlay = new GraphicsOverlay();
       barrierGraphicsOverlay = new GraphicsOverlay();
       mapView.getGraphicsOverlays().add(routeGraphicsOverlay);
       mapView.getGraphicsOverlays().add(barrierGraphicsOverlay);
-
       String ROUTE_TASK_SANDIEGO =
           "http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route";
       routeTask = new RouteTask(ROUTE_TASK_SANDIEGO);
@@ -144,14 +168,11 @@ public class DeliverTillYouDropController {
         });
       });
       routeTask.loadAsync();
-
       FeatureCollection featureCollection = FeatureCollection.fromJson(routeParser.getRouteInformation());
       featureTables = featureCollection.getTables();
-
       addRemoveBarrierControls();
       setupMapViewInteraction();
       addRouteSelectionControls();
-
       // adding route
       addRouteButton.setOnAction(e -> {
         final ArrayList<Field> fields = new ArrayList<Field>();
@@ -181,7 +202,6 @@ public class DeliverTillYouDropController {
           }
         }
       });
-
       removeRouteButton.setOnAction(e -> {
         if (isRouteSelected) {
           // delete route
@@ -191,18 +211,19 @@ public class DeliverTillYouDropController {
           threadPool.execute(this::updateRoute);
         }
       });
-
+      syncButton.setOnAction(e -> {
+        highlightDeliveries();
+      });
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   private void createRoutes() {
-
     int colorCounter = 0;
     for (int i = 0; i < featureTables.size(); i++) {
       List<Point> points = new ArrayList<>();
-      //              points.add(new Point(-1.3041955459030736E7, 3857073.8022902417, ESPG_3857));
+      // points.add(new Point(-1.3041955459030736E7, 3857073.8022902417, ESPG_3857));
       featureTables.get(i).forEach(feature -> {
         points.add((Point) feature.getGeometry());
       });
@@ -215,26 +236,21 @@ public class DeliverTillYouDropController {
   }
 
   private void updateRoute() {
-
     routeGraphicsOverlay.getGraphics().clear();
     barrierGraphicsOverlay.getGraphics().clear();
     routes.clear();
-
     barrierPoints.forEach(point -> {
       barrierGraphicsOverlay.getGraphics().add(new Graphic(point, barrierMarker));
     });
-
     for (int i = 0; i < routePoints.size(); i++) {
       addRoute(routePoints.get(i), colors.get(i));
     }
   }
 
   private void addRoute(List<Point> points, int color) {
-
     List<Stop> routeStops = routeParameters.getStops();
-    //    List<Stop> routeStops = new ArrayList<>();
+    // List<Stop> routeStops = new ArrayList<>();
     SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, color, 18);
-
     routeStops.clear();
     numberStops = 1;
     points.forEach(point -> {
@@ -245,19 +261,16 @@ public class DeliverTillYouDropController {
       routeGraphicsOverlay.getGraphics().add(new Graphic(point, stop1Text));
       numberStops++;
     });
-
     routeParameters.getPointBarriers().clear();
     barrierPoints.forEach(point -> {
       PointBarrier barrier = new PointBarrier(point);
       routeParameters.getPointBarriers().add(barrier);
     });
-
     if (routeStops.size() > 0) {
       try {
         RouteResult result = routeTask.solveRouteAsync(routeParameters).get();
         Route route = result.getRoutes().get(0);
         routes.add(route);
-
         // create route trip on map
         Geometry shape = route.getRouteGeometry();
         Graphic routeGraphic = new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, color, 2));
@@ -266,12 +279,14 @@ public class DeliverTillYouDropController {
         e.printStackTrace();
       }
     } else {
-
     }
   }
 
-  private void addRemoveBarrierControls() {
+  private void highlightDeliveries() {
+    // colors.add(0xFF00FFFF);
+  }
 
+  private void addRemoveBarrierControls() {
     addBarrierButton.setOnAction(e -> {
       if (!isAddingBarriers) {
         isAddingBarriers = true;
@@ -280,7 +295,6 @@ public class DeliverTillYouDropController {
         threadPool.execute(this::updateRoute);
       }
     });
-
     removeBarrierButton.setOnAction(e -> {
       if (!isRemovingBarriers) {
         isRemovingBarriers = true;
@@ -292,13 +306,10 @@ public class DeliverTillYouDropController {
   }
 
   private void setupMapViewInteraction() {
-
     mapView.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY) {
-
         Point2D point = new Point2D(e.getX(), e.getY());
         Point mapPoint = mapView.screenToLocation(point);
-
         if (isAddingBarriers) {
           barrierPoints.add(mapPoint);
           barrierGraphicsOverlay.getGraphics().add(new Graphic(mapPoint, barrierMarker));
@@ -328,9 +339,7 @@ public class DeliverTillYouDropController {
   }
 
   private void addRouteSelectionControls() {
-
     comboBox.setOnAction((event) -> {
-
       int selectedRoute = (comboBox.getSelectionModel().getSelectedIndex() - 1);
       if (selectedRoute != -1) {
         isRouteSelected = true;
@@ -339,10 +348,9 @@ public class DeliverTillYouDropController {
         Graphic routeGraphic =
             new Graphic(shape, new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, colors.get(selectedRoute), 2));
         routeGraphicsOverlay.getGraphics().add(routeGraphic);
-
         SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, colors.get(selectedRoute), 14);
-        TextSymbol stop1Text = new TextSymbol(10, "1", 0xFF000000, HorizontalAlignment.CENTER,
-            VerticalAlignment.MIDDLE);
+        TextSymbol stop1Text =
+            new TextSymbol(10, "1", 0xFF000000, HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
         routePoints.get(selectedRoute).forEach(point -> {
           routeGraphicsOverlay.getGraphics().add(new Graphic(point, stopMarker));
           routeGraphicsOverlay.getGraphics().add(new Graphic(point, stop1Text));
