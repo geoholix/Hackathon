@@ -87,23 +87,6 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
-    NavigationView navigationView = (NavigationView) findViewById(R.id.right_drawer);
-
-    navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-      @Override
-      public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        boolean retVal = true;
-        switch(item.getItemId()){
-          case R.id.action_menu_barrier:
-            break;
-          default:
-            retVal = false;
-            break;
-        }
-        return retVal;
-      }
-    });
-
     mMapView = (MapView) findViewById(R.id.map_view);
     mMapView.setOnTouchListener(new MapViewOnTouchListener(this, mMapView));
     mMapView.getGraphicsOverlays().add(mGraphicsOverlay);
@@ -127,9 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
           mRouteParams = routeParamsFuture.get();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
           e.printStackTrace();
         }
 
@@ -160,9 +141,7 @@ public class MainActivity extends AppCompatActivity {
         RouteResult routeResult = null;
         try {
           routeResult = routeResultFuture.get();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
           e.printStackTrace();
         }
 
@@ -229,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
 
   private Dialog getDeliveryOptionsDialog(){
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    builder.setTitle("Delivery Options")
+    builder.setTitle(R.string.title_delivery_options)
             .setItems(R.array.deliver_options, new DialogInterface.OnClickListener() {
               @Override
               public void onClick(DialogInterface dialogInterface, int i) {
