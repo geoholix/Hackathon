@@ -34,6 +34,7 @@ import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.Symbol;
+import com.esri.arcgisruntime.symbology.TextSymbol;
 import com.esri.arcgisruntime.tasks.networkanalysis.PointBarrier;
 import com.esri.arcgisruntime.tasks.networkanalysis.Route;
 import com.esri.arcgisruntime.tasks.networkanalysis.RouteParameters;
@@ -49,8 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
   private final static Symbol ROUTE_SYMBOL = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(200,0,209,92), 5);
 
-  private Symbol DELIVER_SYMBOL;
-          //new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,1,77,100), 15);
+  private final static Symbol DELIVER_SYMBOL = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.argb(255,1,77,100), 25);
 
   private MapView mMapView;
 
@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
   private final RouteTask mRouteTask = new RouteTask("http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route");;
 
-  private final GraphicsOverlay mGraphicsOverlay = new GraphicsOverlay();;
+  private final GraphicsOverlay mGraphicsOverlay = new GraphicsOverlay();
+  private int mDeliveredCount;
 
   RouteParameters mRouteParams = null;
 
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    DELIVER_SYMBOL = new PictureMarkerSymbol((BitmapDrawable)ContextCompat.getDrawable(this, R.drawable.ic_stop));
+    //DELIVER_SYMBOL = new PictureMarkerSymbol((BitmapDrawable)ContextCompat.getDrawable(this, R.drawable.ic_stop));
 
     setContentView(R.layout.activity_main);
 
@@ -88,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
           mRouteParams.getStops().clear();
           mGraphicsOverlay.getGraphics().clear();
         }
+
+        ++mDeliveredCount;
       }
     });
 
@@ -188,9 +191,20 @@ public class MainActivity extends AppCompatActivity {
         mGraphicsOverlay.getGraphics().add(routeGraphic);
 
 
+        // Delivery graphics
         for (int i = 0; i < mRouteParams.getStops().size(); i++) {
           Graphic routeSteerPoint = new Graphic(mRouteParams.getStops().get(i).getGeometry(), DELIVER_SYMBOL);
           mGraphicsOverlay.getGraphics().add(routeSteerPoint);
+
+          //create text symbols
+          TextSymbol text =
+                  new TextSymbol(
+                          18, String.valueOf(mDeliveredCount + i + 1),  Color.argb(200,0,209,92),
+                          TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
+          Graphic textGraphic = new Graphic(mRouteParams.getStops().get(i).getGeometry(), text);
+
+          //add the text to the graphics overlay
+          mGraphicsOverlay.getGraphics().add(textGraphic);
         }
 
         mMapView.setViewpointGeometryAsync(route.getRouteGeometry().getExtent(), 20);
