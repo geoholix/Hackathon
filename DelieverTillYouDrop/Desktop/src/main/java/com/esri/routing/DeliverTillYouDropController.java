@@ -71,6 +71,7 @@ public class DeliverTillYouDropController {
   private boolean isRemovingBarriers = false;
   private boolean isAddingRoute = false;
   private boolean isRouteSelected = false;
+  private int numberStops;
 
   private List<Integer> colors = new ArrayList<>();
   private List<Route> routes = new ArrayList<>();
@@ -232,15 +233,17 @@ public class DeliverTillYouDropController {
 
     List<Stop> routeStops = routeParameters.getStops();
     //    List<Stop> routeStops = new ArrayList<>();
-    SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, color, 14);
-    TextSymbol stop1Text = new TextSymbol(10, "1", 0xFF000000, HorizontalAlignment.CENTER,
-        VerticalAlignment.MIDDLE);
+    SimpleMarkerSymbol stopMarker = new SimpleMarkerSymbol(Style.CIRCLE, color, 18);
 
     routeStops.clear();
+    numberStops = 1;
     points.forEach(point -> {
       routeStops.add(new Stop(point));
+      TextSymbol stop1Text = new TextSymbol(14, String.valueOf(numberStops), 0xFF000000, HorizontalAlignment.CENTER,
+          VerticalAlignment.MIDDLE);
       routeGraphicsOverlay.getGraphics().add(new Graphic(point, stopMarker));
       routeGraphicsOverlay.getGraphics().add(new Graphic(point, stop1Text));
+      numberStops++;
     });
 
     routeParameters.getPointBarriers().clear();
