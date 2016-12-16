@@ -29,6 +29,8 @@
         <Button fx:id="addBarrierButton" text="Add Barrier" maxWidth="Infinity" disable="false"/>
         <Button fx:id="removeBarrierButton" text="Remove Barrier" maxWidth="Infinity" disable="false"/>
       </VBox>
+      
+      <Button fx:id="syncButton" text="SyncRoutes" maxWidth="Infinity" disable="false"/>
     </HBox>
 </StackPane>
 

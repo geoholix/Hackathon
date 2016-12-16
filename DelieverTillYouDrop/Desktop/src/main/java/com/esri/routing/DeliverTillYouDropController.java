@@ -16,6 +16,7 @@
 package com.esri.routing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -66,6 +67,7 @@ public class DeliverTillYouDropController {
   @FXML private Button removeRouteButton;
   @FXML private Button addBarrierButton;
   @FXML private Button removeBarrierButton;
+  @FXML private Button syncButton;
 
   private boolean isAddingBarriers = false;
   private boolean isRemovingBarriers = false;
@@ -117,6 +119,7 @@ public class DeliverTillYouDropController {
         listener.addDoneListener(() -> {
           try {
             routeParameters = listener.get();
+            routeParameters.setFindBestSequence(true);
             routeParameters.setOutputSpatialReference(ESPG_3857);
             threadPool.execute(this::createRoutes);
           } catch (Exception ex) {
@@ -128,6 +131,13 @@ public class DeliverTillYouDropController {
 
       FeatureCollection featureCollection = FeatureCollection.fromJson(routeParser.getRouteInformation());
       featureTables = featureCollection.getTables();
+
+      syncButton.setOnAction(e -> {
+        for (int i = 0; i < routePoints.size(); i++) {
+          List<Point> points = routePoints.get(i);
+          addRoute(Arrays.asList(points.get(0), points.get(1)), 0xff000000);
+        }
+      });
 
       addRemoveBarrierControls();
       setupMapViewInteraction();
